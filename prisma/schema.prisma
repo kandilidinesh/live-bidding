@@ -32,7 +32,6 @@ model User {
 enum Role {
   USER
   ADMIN
-  SELLER
 }
 
 model Auction {
@@ -42,13 +41,19 @@ model Auction {
   endTime           DateTime
   startingBid       Int
   currentHighestBid Int      @default(0)
-  status            String // UPCOMING | LIVE | ENDED
+  status            AuctionStatus // UPCOMING | LIVE | ENDED
   createdAt         DateTime @default(now())
 
   winnerId Int?
   winner   User? @relation("AuctionWinner", fields: [winnerId], references: [id])
 
   bids Bid[]
+}
+
+enum AuctionStatus {
+  UPCOMING
+  LIVE
+  ENDED
 }
 
 model Bid {

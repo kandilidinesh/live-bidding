@@ -9,7 +9,6 @@ import {
 export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
-  SELLER = 'SELLER',
 }
 
 export class CreateUserDto {
