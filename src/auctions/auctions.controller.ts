@@ -9,8 +9,9 @@ export class AuctionsController {
   constructor(private readonly auctionsService: AuctionsService) {}
 
   // Start auction immediately
+
   @Post('start')
-  startAuction(@Body() data: { carId: string; startingBid: number; endTime: string }) {
+  startAuction(@Body() data: { carId: string; startingBid: number }) {
     return this.auctionsService.startAuction(data);
   }
 

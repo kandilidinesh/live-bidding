@@ -6,15 +6,17 @@ export class AuctionsService {
   constructor(private readonly prisma: PrismaService) {}
 
 
-  // Start auction immediately
-  async startAuction(data: { carId: string; startingBid: number; endTime: string }) {
+  // Start auction immediately (no endTime, admin will end manually)
+  async startAuction(data: { carId: string; startingBid: number }) {
+    // Set endTime to a far-future date as a placeholder; admin will end manually
+    const farFuture = new Date('2999-12-31T23:59:59.999Z');
     return this.prisma.auction.create({
       data: {
         carId: data.carId,
         startingBid: data.startingBid,
         currentHighestBid: data.startingBid,
         startTime: new Date(),
-        endTime: new Date(data.endTime),
+        endTime: farFuture,
         status: 'LIVE',
       },
     });
