@@ -13,6 +13,7 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
 import { AuctionsService } from './auctions.service';
 import { PubsubService } from 'src/redis/pubsub/pubsub.service';
+import { RabbitmqService } from 'src/rabbitmq/rabbitmq.service';
 
 @WebSocketGateway({ namespace: '/auctions', cors: true })
 export class AuctionGateway
@@ -24,6 +25,7 @@ export class AuctionGateway
   constructor(
     private readonly auctionsService: AuctionsService,
     private readonly pubsubService: PubsubService,
+    private readonly rabbitmqService: RabbitmqService,
   ) {}
 
   async afterInit() {
@@ -102,9 +104,14 @@ export class AuctionGateway
       data.amount,
     );
     if (result.success) {
+      // Publish bid to RabbitMQ for processing (reliable, ordered)
+      await this.rabbitmqService.publishBid(result.bid);
       // Cache the new highest bid and publish to Redis channel
       await this.pubsubService.setHighestBid(data.auctionId, result.bid);
       await this.pubsubService.publishBidUpdate(data.auctionId, result.bid);
+      // Publish audit and notification events
+      await this.rabbitmqService.publishAudit({ type: 'bid', bid: result.bid });
+      await this.rabbitmqService.publishNotification({ type: 'bid', bid: result.bid });
     } else {
       client.emit('bidError', result.message);
     }
@@ -113,6 +120,19 @@ export class AuctionGateway
   async handleAuctionEnd(@MessageBody() data: { auctionId: number }) {
     console.log(`[AuctionGateway] auctionEnd: auctionId=${data.auctionId}`);
     const result = await this.auctionsService.endAuction(data.auctionId);
+    // Publish auction end event to RabbitMQ
+    await this.rabbitmqService.publishNotification({ type: 'auctionEnd', auction: result });
+    await this.rabbitmqService.publishAudit({ type: 'auctionEnd', auction: result });
     this.server.to(`auction_${data.auctionId}`).emit('auctionEnded', result);
+  }
+  @SubscribeMessage('auctionStart')
+  async handleAuctionStart(@MessageBody() data: { carId: string; startingBid: number }, @ConnectedSocket() client: Socket) {
+    console.log(`[AuctionGateway] auctionStart: carId=${data.carId}, startingBid=${data.startingBid}`);
+    const result = await this.auctionsService.startAuction(data);
+    // Publish auction start event to RabbitMQ
+    await this.rabbitmqService.publishNotification({ type: 'auctionStart', auction: result });
+    await this.rabbitmqService.publishAudit({ type: 'auctionStart', auction: result });
+    // Optionally, notify all clients in the new auction room
+    this.server.to(`auction_${result.id}`).emit('auctionStarted', result);
   }
 }
