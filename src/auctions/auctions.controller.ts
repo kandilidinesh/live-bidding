@@ -75,9 +75,9 @@ export class AuctionsController {
 
   // Add auction (admin, minimal: carId only)
   @Post()
-  addAuction(@Body() data: { carId: string }) {
+  addAuction(@Body() data: { carId: string; startingBid?: number }) {
     this.logger.log(`[POST /auctions] ${JSON.stringify(data)}`);
-    // Reuse startAuction with startingBid: 0
-    return this.auctionsService.startAuction({ carId: data.carId, startingBid: 0 });
+    // Use provided startingBid or default to 0
+    return this.auctionsService.startAuction({ carId: data.carId, startingBid: data.startingBid ?? 0 });
   }
 }
