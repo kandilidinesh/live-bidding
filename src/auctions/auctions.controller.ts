@@ -1,8 +1,16 @@
-
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  UseGuards,
+  Logger,
+} from '@nestjs/common';
 import { AuctionsService } from './auctions.service';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
-
 
 @UseGuards(ApiKeyGuard)
 @Controller('auctions')
@@ -27,7 +35,15 @@ export class AuctionsController {
 
   // Schedule auction for future
   @Post('schedule')
-  scheduleAuction(@Body() data: { carId: string; startingBid: number; scheduledStartTime: string; scheduledEndTime: string }) {
+  scheduleAuction(
+    @Body()
+    data: {
+      carId: string;
+      startingBid: number;
+      scheduledStartTime: string;
+      scheduledEndTime: string;
+    },
+  ) {
     this.logger.log(`[POST /auctions/schedule] ${JSON.stringify(data)}`);
     return this.auctionsService.scheduleAuction(data);
   }
@@ -55,5 +71,13 @@ export class AuctionsController {
   async getBids(@Param('id') id: string) {
     this.logger.log(`[GET /auctions/${id}/bids]`);
     return this.auctionsService.findBidsByAuctionId(Number(id));
+  }
+
+  // Add auction (admin, minimal: carId only)
+  @Post()
+  addAuction(@Body() data: { carId: string }) {
+    this.logger.log(`[POST /auctions] ${JSON.stringify(data)}`);
+    // Reuse startAuction with startingBid: 0
+    return this.auctionsService.startAuction({ carId: data.carId, startingBid: 0 });
   }
 }

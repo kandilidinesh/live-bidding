@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 @Injectable()
 export class AuctionsService {
   private readonly logger = new Logger(AuctionsService.name);
@@ -13,9 +12,10 @@ export class AuctionsService {
     userId: number,
     amount: number,
   ): Promise<{ success: boolean; bid?: any; message?: string }> {
-
     // 1. Validate auction is live
-    this.logger.log(`[placeBid] Received bid: auctionId=${auctionId}, userId=${userId}, amount=${amount}`);
+    this.logger.log(
+      `[placeBid] Received bid: auctionId=${auctionId}, userId=${userId}, amount=${amount}`,
+    );
     const auction = await this.prisma.auction.findUnique({
       where: { id: auctionId },
     });
@@ -28,7 +28,9 @@ export class AuctionsService {
       return { success: false, message: 'Auction is not live' };
     }
     if (amount <= auction.currentHighestBid) {
-      this.logger.warn(`[placeBid] Bid too low: ${amount} <= ${auction.currentHighestBid}`);
+      this.logger.warn(
+        `[placeBid] Bid too low: ${amount} <= ${auction.currentHighestBid}`,
+      );
       return {
         success: false,
         message: 'Bid must be higher than current highest bid',
@@ -54,7 +56,9 @@ export class AuctionsService {
         });
         return { updatedAuction, bid };
       });
-      this.logger.log(`[placeBid] Bid placed successfully: bidId=${result.bid.id}`);
+      this.logger.log(
+        `[placeBid] Bid placed successfully: bidId=${result.bid.id}`,
+      );
       return { success: true, bid: result.bid };
     } catch (err) {
       this.logger.error(`[placeBid] Bid failed: ${err.message}`);
@@ -64,7 +68,9 @@ export class AuctionsService {
 
   // Start auction immediately (no endTime, admin will end manually)
   async startAuction(data: { carId: string; startingBid: number }) {
-    this.logger.log(`[startAuction] Starting auction for carId=${data.carId}, startingBid=${data.startingBid}`);
+    this.logger.log(
+      `[startAuction] Starting auction for carId=${data.carId}, startingBid=${data.startingBid}`,
+    );
     // Set endTime to a far-future date as a placeholder; admin will end manually
     const farFuture = new Date('2999-12-31T23:59:59.999Z');
     const auction = await this.prisma.auction.create({
@@ -93,7 +99,9 @@ export class AuctionsService {
     let winnerId: number | null = null;
     if (highestBid) {
       winnerId = highestBid.userId;
-      this.logger.log(`[endAuction] Winner determined: userId=${winnerId}, amount=${highestBid.amount}`);
+      this.logger.log(
+        `[endAuction] Winner determined: userId=${winnerId}, amount=${highestBid.amount}`,
+      );
     } else {
       this.logger.log(`[endAuction] No bids placed, no winner.`);
     }
@@ -105,7 +113,9 @@ export class AuctionsService {
         winnerId: winnerId,
       },
     });
-    this.logger.log(`[endAuction] Auction ended: id=${auction.id}, winnerId=${winnerId}`);
+    this.logger.log(
+      `[endAuction] Auction ended: id=${auction.id}, winnerId=${winnerId}`,
+    );
     return auction;
   }
 
@@ -116,7 +126,9 @@ export class AuctionsService {
     scheduledStartTime: string;
     scheduledEndTime: string;
   }) {
-    this.logger.log(`[scheduleAuction] Scheduling auction for carId=${data.carId}, startingBid=${data.startingBid}, start=${data.scheduledStartTime}, end=${data.scheduledEndTime}`);
+    this.logger.log(
+      `[scheduleAuction] Scheduling auction for carId=${data.carId}, startingBid=${data.startingBid}, start=${data.scheduledStartTime}, end=${data.scheduledEndTime}`,
+    );
     const auction = await this.prisma.auction.create({
       data: {
         carId: data.carId,
@@ -148,7 +160,9 @@ export class AuctionsService {
 
   // Fetch all bids for a given auction
   async findBidsByAuctionId(auctionId: number) {
-    this.logger.log(`[findBidsByAuctionId] Fetching bids for auctionId=${auctionId}`);
+    this.logger.log(
+      `[findBidsByAuctionId] Fetching bids for auctionId=${auctionId}`,
+    );
     return this.prisma.bid.findMany({
       where: { auctionId },
       orderBy: { timestamp: 'asc' },
@@ -163,10 +177,12 @@ export class AuctionsService {
             role: true,
             isActive: true,
             createdAt: true,
-            updatedAt: true
-          }
-        }
-      }
+            updatedAt: true,
+          },
+        },
+      },
     });
   }
+
+
 }
