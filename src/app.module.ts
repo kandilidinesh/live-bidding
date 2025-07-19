@@ -9,7 +9,14 @@ import { RabbitmqModule } from './rabbitmq/rabbitmq.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [UsersModule, AuctionsModule, BidsModule, RedisModule, RabbitmqModule, PrismaModule],
+  imports: [
+    UsersModule,
+    AuctionsModule,
+    BidsModule,
+    RedisModule,
+    RabbitmqModule,
+    PrismaModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
