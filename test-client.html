@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Car Auction - Modern Test Client</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f6fa; }
+    .container { max-width: 600px; margin: 2em auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    h2, h3 { margin-top: 0; }
+    .auction-list { list-style: none; padding: 0; }
+    .auction-list li { padding: 1em; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
+    .auction-list li:hover { background: #f0f4ff; }
+    .hidden { display: none; }
+    .form-row { margin: 1em 0; }
+    label { display: block; margin-bottom: 0.3em; }
+    select, input, button { padding: 0.5em; border-radius: 4px; border: 1px solid #ccc; }
+    button { background: #1976d2; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #125ea8; }
+    #log { border: 1px solid #ccc; padding: 1em; height: 120px; overflow-y: auto; background: #fafafa; margin-top: 1em; font-size: 0.95em; }
+    .back-btn { background: #eee; color: #333; margin-bottom: 1em; }
+    .back-btn:hover { background: #ddd; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Live Car Auction</h2>
+    <div id="auctionListView">
+      <h3>Available Auctions</h3>
+      <ul id="auctionList" class="auction-list"></ul>
+    </div>
+    <div id="auctionRoomView" class="hidden">
+      <button class="back-btn" onclick="leaveAuctionRoom()">&larr; Back to Auctions</button>
+      <h3 id="auctionRoomTitle"></h3>
+      <div class="form-row">
+        <label for="userSelect">User:</label>
+        <select id="userSelect"></select>
+      </div>
+      <div class="form-row">
+        <label for="bidAmount">Bid Amount:</label>
+        <input type="number" id="bidAmount" value="1000" min="1" />
+        <button onclick="placeBid()">Place Bid</button>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div>
+  <script>
+    // --- Config ---
+    const API_BASE = 'http://localhost:3000';
+    const SOCKET_URL = 'http://localhost:3000/auctions';
+    // --- State ---
+    let users = [];
+    let socket = null;
+    let currentAuction = null;
+    // --- DOM Elements ---
+    const auctionListView = document.getElementById('auctionListView');
+    const auctionRoomView = document.getElementById('auctionRoomView');
+    const auctionList = document.getElementById('auctionList');
+    const auctionRoomTitle = document.getElementById('auctionRoomTitle');
+    const userSelect = document.getElementById('userSelect');
+    const bidAmount = document.getElementById('bidAmount');
+    const logDiv = document.getElementById('log');
+    // --- Init ---
+    fetchAuctions();
+    fetchUsers();
+    function fetchAuctions() {
+      fetch(`${API_BASE}/auctions`, { headers: { 'x-api-key': 'my-secret-api-key' } })
+        .then(res => res.json())
+        .then(data => renderAuctionList(data))
+        .catch(() => auctionList.innerHTML = '<li style="color:red">Failed to load auctions</li>');
+    }
+    function renderAuctionList(auctions) {
+      auctionList.innerHTML = '';
+      if (!auctions.length) {
+        auctionList.innerHTML = '<li>No auctions available</li>';
+        return;
+      }
+      auctions.forEach(auction => {
+        const li = document.createElement('li');
+        li.textContent = `Auction #${auction.id} | Car: ${auction.carId} | Highest Bid: ${auction.currentHighestBid}`;
+        li.onclick = () => enterAuctionRoom(auction);
+        auctionList.appendChild(li);
+      });
+    }
+    function fetchUsers() {
+      fetch(`${API_BASE}/users`, { headers: { 'x-api-key': 'my-secret-api-key' } })
+        .then(res => res.json())
+        .then(data => {
+          users = data;
+          populateUsers();
+        })
+        .catch(() => {
+          userSelect.innerHTML = '<option disabled>Failed to load users</option>';
+        });
+    }
+    function populateUsers() {
+      userSelect.innerHTML = '';
+      users.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = `${u.username || u.name || u.email || 'User'} (ID: ${u.id})`;
+        userSelect.appendChild(opt);
+      });
+    }
+    function enterAuctionRoom(auction) {
+      currentAuction = auction;
+      auctionListView.classList.add('hidden');
+      auctionRoomView.classList.remove('hidden');
+      auctionRoomTitle.textContent = `Auction #${auction.id} | Car: ${auction.carId}`;
+      logDiv.innerHTML = '';
+      connectSocket(auction.id);
+    }
+    function leaveAuctionRoom() {
+      if (socket) socket.disconnect();
+      currentAuction = null;
+      auctionRoomView.classList.add('hidden');
+      auctionListView.classList.remove('hidden');
+    }
+    function connectSocket(auctionId) {
+      if (socket) socket.disconnect();
+      socket = io(SOCKET_URL, { transports: ['websocket'] });
+      socket.on('connect', () => {
+        log('Connected to auction room');
+        socket.emit('joinAuction', { auctionId });
+      });
+      socket.on('disconnect', () => log('Disconnected from server'));
+      socket.on('bidUpdate', data => log('Bid Update: ' + JSON.stringify(data)));
+      socket.on('auctionEnded', data => log('<b style="color:green">Auction Ended: ' + JSON.stringify(data) + '</b>'));
+      socket.on('auctionStarted', data => log('Auction Started: ' + JSON.stringify(data)));
+      socket.on('bidError', msg => log('<span style="color:red">Bid Error: ' + msg + '</span>'));
+    }
+    function placeBid() {
+      if (!currentAuction) return;
+      const auctionId = currentAuction.id;
+      const userId = parseInt(userSelect.value);
+      const amount = parseFloat(bidAmount.value);
+      socket.emit('placeBid', { auctionId, userId, amount });
+      log('Placed bid: ' + amount + ' (User: ' + userId + ', Auction: ' + auctionId + ')');
+    }
+    function log(msg) {
+      logDiv.innerHTML += msg + '<br />';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+  </script>
+</body>
+</html>
