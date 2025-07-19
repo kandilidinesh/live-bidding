@@ -49,4 +49,11 @@ export class AuctionsController {
     this.logger.log(`[DELETE /auctions/${id}]`);
     return this.auctionsService.deleteAuction(Number(id));
   }
+
+  // Get all bids for a given auction
+  @Get(':id/bids')
+  async getBids(@Param('id') id: string) {
+    this.logger.log(`[GET /auctions/${id}/bids]`);
+    return this.auctionsService.findBidsByAuctionId(Number(id));
+  }
 }

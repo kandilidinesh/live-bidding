@@ -131,4 +131,18 @@ export class AuctionsService {
     this.logger.log(`[deleteAuction] Deleting auction id=${id}`);
     return this.prisma.auction.delete({ where: { id } });
   }
+
+  // Fetch all bids for a given auction
+  async findBidsByAuctionId(auctionId: number) {
+    this.logger.log(`[findBidsByAuctionId] Fetching bids for auctionId=${auctionId}`);
+    return this.prisma.bid.findMany({
+      where: { auctionId },
+      orderBy: { timestamp: 'asc' },
+      include: {
+        user: {
+          select: { id: true, username: true }
+        }
+      }
+    });
+  }
 }
