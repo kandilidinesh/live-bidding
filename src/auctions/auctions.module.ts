@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuctionsService } from './auctions.service';
-import { AuctionGateway } from './auction/auction.gateway';
+import { AuctionGateway } from './auction.gateway';
 import { AuctionsController } from './auctions.controller';
 
 @Module({
