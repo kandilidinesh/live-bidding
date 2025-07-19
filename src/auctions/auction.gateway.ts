@@ -8,14 +8,18 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
 import { AuctionsService } from './auctions.service';
 import { PubsubService } from 'src/redis/pubsub/pubsub.service';
 import { RabbitmqService } from 'src/rabbitmq/rabbitmq.service';
+import { WsConnectionRateLimitGuard } from 'src/common/guards/ws-connection-rate-limit.guard';
+import { BidThrottleInterceptor } from 'src/common/interceptors/bid-throttle.interceptor';
 
 @WebSocketGateway({ namespace: '/auctions', cors: true })
+@UseGuards(WsConnectionRateLimitGuard)
 export class AuctionGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -91,6 +95,7 @@ export class AuctionGateway
   }
 
   @SubscribeMessage('placeBid')
+  @UseInterceptors(BidThrottleInterceptor)
   async handlePlaceBid(
     @MessageBody() data: { auctionId: number; userId: number; amount: number },
     @ConnectedSocket() client: Socket,
