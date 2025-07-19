@@ -13,3 +13,41 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  bids         Bid[]
+  auctionsWon  Auction[] @relation("AuctionWinner")
+}
+
+model Auction {
+  id               Int      @id @default(autoincrement())
+  carId            String
+  startTime        DateTime
+  endTime          DateTime
+  startingBid      Int
+  currentHighestBid Int     @default(0)
+  status           String   // UPCOMING | LIVE | ENDED
+  createdAt        DateTime @default(now())
+
+  winnerId   Int?
+  winner     User?   @relation("AuctionWinner", fields: [winnerId], references: [id])
+
+  bids       Bid[]
+}
+
+model Bid {
+  id         Int      @id @default(autoincrement())
+  amount     Int
+  timestamp  DateTime @default(now())
+
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+
+  auctionId  Int
+  auction    Auction  @relation(fields: [auctionId], references: [id])
+}
