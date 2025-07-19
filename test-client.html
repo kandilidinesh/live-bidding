@@ -9,9 +9,58 @@
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f6fa; }
     .container { max-width: 600px; margin: 2em auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
     h2, h3 { margin-top: 0; }
-    .auction-list { list-style: none; padding: 0; }
-    .auction-list li { padding: 1em; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
-    .auction-list li:hover { background: #f0f4ff; }
+    .auction-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1em; }
+    .auction-card {
+      background: #f9fbff;
+      border: 1px solid #e3e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px #0001;
+      padding: 1.2em 1.5em;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: box-shadow 0.2s, border 0.2s;
+      position: relative;
+    }
+    .auction-card:hover {
+      box-shadow: 0 4px 16px #0002;
+      border-color: #b3c6e0;
+      background: #f0f4ff;
+    }
+    .auction-title {
+      font-size: 1.1em;
+      font-weight: 600;
+      margin-bottom: 0.2em;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .auction-badges {
+      position: absolute;
+      top: 1.2em;
+      right: 1.5em;
+      display: flex;
+      gap: 0.5em;
+      align-items: center;
+    }
+    .auction-meta {
+      color: #555;
+      font-size: 0.97em;
+      margin-bottom: 0.2em;
+    }
+    .auction-status {
+      display: inline-block;
+      font-size: 0.85em;
+      font-weight: 600;
+      padding: 0.2em 0.7em;
+      border-radius: 12px;
+      background: #e3e8f0;
+      color: #1976d2;
+      margin-left: 0.5em;
+    }
+    .auction-status.LIVE { background: #e3fbe3; color: #219653; }
+    .auction-status.ENDED { background: #ffe3e3; color: #d32f2f; }
+    .auction-status.UPCOMING { background: #fffbe3; color: #b59f00; }
     .hidden { display: none; }
     .form-row { margin: 1em 0; }
     label { display: block; margin-bottom: 0.3em; }
@@ -77,10 +126,39 @@
         return;
       }
       auctions.forEach(auction => {
-        const li = document.createElement('li');
-        li.textContent = `Auction #${auction.id} | Car: ${auction.carId} | Highest Bid: ${auction.currentHighestBid}`;
-        li.onclick = () => enterAuctionRoom(auction);
-        auctionList.appendChild(li);
+        const card = document.createElement('li');
+        card.className = 'auction-card';
+        card.onclick = () => enterAuctionRoom(auction);
+        // Badges container (top right)
+        const badges = document.createElement('div');
+        badges.className = 'auction-badges';
+        // Auction ID badge
+        const idBadge = document.createElement('span');
+        idBadge.style = 'background:#e0e7ef;color:#333;font-size:0.85em;padding:0.2em 0.7em;border-radius:12px;';
+        idBadge.textContent = `#${auction.id}`;
+        // Auction status badge
+        const status = document.createElement('span');
+        status.className = 'auction-status ' + (auction.status || '');
+        status.textContent = auction.status || 'UNKNOWN';
+        badges.appendChild(idBadge);
+        badges.appendChild(status);
+        // Title (Car name)
+        const title = document.createElement('div');
+        title.className = 'auction-title';
+        title.textContent = auction.carName || auction.carId || 'Unknown Car';
+        // Meta info
+        const meta = document.createElement('div');
+        meta.className = 'auction-meta';
+        meta.innerHTML = `<b>Car ID:</b> ${auction.carId || '-'} &nbsp; <b>Start:</b> ${auction.startTime ? new Date(auction.startTime).toLocaleString() : '-'} &nbsp; <b>End:</b> ${auction.endTime ? new Date(auction.endTime).toLocaleString() : '-'}`;
+        // Highest bid
+        const bid = document.createElement('div');
+        bid.className = 'auction-meta';
+        bid.innerHTML = `<b>Highest Bid:</b> $${auction.currentHighestBid ?? '-'} &nbsp; <b>Starting Bid:</b> $${auction.startingBid ?? '-'}`;
+        card.appendChild(badges);
+        card.appendChild(title);
+        card.appendChild(meta);
+        card.appendChild(bid);
+        auctionList.appendChild(card);
       });
     }
     function fetchUsers() {
