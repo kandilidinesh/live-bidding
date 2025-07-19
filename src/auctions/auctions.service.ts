@@ -84,14 +84,28 @@ export class AuctionsService {
   // End auction manually
   async endAuction(id: number) {
     this.logger.log(`[endAuction] Ending auction id=${id}`);
+    // Find the highest bid for this auction
+    const highestBid = await this.prisma.bid.findFirst({
+      where: { auctionId: id },
+      orderBy: { amount: 'desc' },
+      include: { user: true },
+    });
+    let winnerId: number | null = null;
+    if (highestBid) {
+      winnerId = highestBid.userId;
+      this.logger.log(`[endAuction] Winner determined: userId=${winnerId}, amount=${highestBid.amount}`);
+    } else {
+      this.logger.log(`[endAuction] No bids placed, no winner.`);
+    }
     const auction = await this.prisma.auction.update({
       where: { id },
       data: {
         status: 'ENDED',
         endTime: new Date(),
+        winnerId: winnerId,
       },
     });
-    this.logger.log(`[endAuction] Auction ended: id=${auction.id}`);
+    this.logger.log(`[endAuction] Auction ended: id=${auction.id}, winnerId=${winnerId}`);
     return auction;
   }
 
