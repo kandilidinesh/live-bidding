@@ -8,6 +8,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
@@ -18,11 +19,11 @@ import { RabbitmqService } from 'src/rabbitmq/rabbitmq.service';
 import { WsConnectionRateLimitGuard } from 'src/common/guards/ws-connection-rate-limit.guard';
 import { BidThrottleInterceptor } from 'src/common/interceptors/bid-throttle.interceptor';
 
+
 @WebSocketGateway({ namespace: '/auctions', cors: true })
 @UseGuards(WsConnectionRateLimitGuard)
-export class AuctionGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class AuctionGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  private readonly logger = new Logger(AuctionGateway.name);
   @WebSocketServer()
   server: Server;
 
@@ -41,15 +42,15 @@ export class AuctionGateway
     // Use the actual socket.io server instance (handle NestJS wrapper)
     const io = ((this.server as any).server || this.server) as Server;
     io.adapter(createAdapter(pubClient, subClient));
-    console.log('[AuctionGateway] WebSocket server initialized with Redis adapter');
+    this.logger.log('WebSocket server initialized with Redis adapter');
   }
 
   handleConnection(client: Socket) {
-    console.log(`[AuctionGateway] Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`[AuctionGateway] Client disconnected: ${client.id}`);
+    this.logger.log(`Client disconnected: ${client.id}`);
     // Unsubscribe all Redis listeners for this client
     const joinedRooms = Object.keys((client as any).rooms || {});
     for (const room of joinedRooms) {
@@ -68,9 +69,7 @@ export class AuctionGateway
     @MessageBody() data: { auctionId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log(
-      `[AuctionGateway] joinAuction: client=${client.id}, auctionId=${data.auctionId}`,
-    );
+    this.logger.log(`joinAuction: client=${client.id}, auctionId=${data.auctionId}`);
     await client.join(`auction_${data.auctionId}`);
     // Send current highest bid to the joining client (prefer Redis cache)
     let highestBid = await this.pubsubService.getHighestBid(data.auctionId);
@@ -100,9 +99,7 @@ export class AuctionGateway
     @MessageBody() data: { auctionId: number; userId: number; amount: number },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log(
-      `[AuctionGateway] placeBid: client=${client.id}, auctionId=${data.auctionId}, userId=${data.userId}, amount=${data.amount}`,
-    );
+    this.logger.log(`placeBid: client=${client.id}, auctionId=${data.auctionId}, userId=${data.userId}, amount=${data.amount}`);
     const result = await this.auctionsService.placeBid(
       data.auctionId,
       data.userId,
@@ -123,7 +120,7 @@ export class AuctionGateway
   }
   @SubscribeMessage('auctionEnd')
   async handleAuctionEnd(@MessageBody() data: { auctionId: number }) {
-    console.log(`[AuctionGateway] auctionEnd: auctionId=${data.auctionId}`);
+    this.logger.log(`auctionEnd: auctionId=${data.auctionId}`);
     const result = await this.auctionsService.endAuction(data.auctionId);
     // Publish auction end event to RabbitMQ
     await this.rabbitmqService.publishNotification({ type: 'auctionEnd', auction: result });
@@ -132,7 +129,7 @@ export class AuctionGateway
   }
   @SubscribeMessage('auctionStart')
   async handleAuctionStart(@MessageBody() data: { carId: string; startingBid: number }, @ConnectedSocket() client: Socket) {
-    console.log(`[AuctionGateway] auctionStart: carId=${data.carId}, startingBid=${data.startingBid}`);
+    this.logger.log(`auctionStart: carId=${data.carId}, startingBid=${data.startingBid}`);
     const result = await this.auctionsService.startAuction(data);
     // Publish auction start event to RabbitMQ
     await this.rabbitmqService.publishNotification({ type: 'auctionStart', auction: result });

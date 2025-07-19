@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+
 
 @Injectable()
 export class AuctionsService {
+  private readonly logger = new Logger(AuctionsService.name);
   constructor(private readonly prisma: PrismaService) {}
 
   // Place a bid (for WebSocket live bidding)
@@ -13,20 +15,20 @@ export class AuctionsService {
   ): Promise<{ success: boolean; bid?: any; message?: string }> {
 
     // 1. Validate auction is live
-    console.log(`[placeBid] Received bid: auctionId=${auctionId}, userId=${userId}, amount=${amount}`);
+    this.logger.log(`[placeBid] Received bid: auctionId=${auctionId}, userId=${userId}, amount=${amount}`);
     const auction = await this.prisma.auction.findUnique({
       where: { id: auctionId },
     });
     if (!auction) {
-      console.warn(`[placeBid] Auction not found: ${auctionId}`);
+      this.logger.warn(`[placeBid] Auction not found: ${auctionId}`);
       return { success: false, message: 'Auction not found' };
     }
     if (auction.status !== 'LIVE') {
-      console.warn(`[placeBid] Auction not live: ${auctionId}`);
+      this.logger.warn(`[placeBid] Auction not live: ${auctionId}`);
       return { success: false, message: 'Auction is not live' };
     }
     if (amount <= auction.currentHighestBid) {
-      console.warn(`[placeBid] Bid too low: ${amount} <= ${auction.currentHighestBid}`);
+      this.logger.warn(`[placeBid] Bid too low: ${amount} <= ${auction.currentHighestBid}`);
       return {
         success: false,
         message: 'Bid must be higher than current highest bid',
@@ -36,7 +38,7 @@ export class AuctionsService {
     // 2. Validate user exists
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      console.warn(`[placeBid] User not found: ${userId}`);
+      this.logger.warn(`[placeBid] User not found: ${userId}`);
       return { success: false, message: 'User not found' };
     }
 
@@ -52,17 +54,17 @@ export class AuctionsService {
         });
         return { updatedAuction, bid };
       });
-      console.log(`[placeBid] Bid placed successfully: bidId=${result.bid.id}`);
+      this.logger.log(`[placeBid] Bid placed successfully: bidId=${result.bid.id}`);
       return { success: true, bid: result.bid };
     } catch (err) {
-      console.error(`[placeBid] Bid failed: ${err.message}`);
+      this.logger.error(`[placeBid] Bid failed: ${err.message}`);
       return { success: false, message: 'Bid failed: ' + err.message };
     }
   }
 
   // Start auction immediately (no endTime, admin will end manually)
   async startAuction(data: { carId: string; startingBid: number }) {
-    console.log(`[startAuction] Starting auction for carId=${data.carId}, startingBid=${data.startingBid}`);
+    this.logger.log(`[startAuction] Starting auction for carId=${data.carId}, startingBid=${data.startingBid}`);
     // Set endTime to a far-future date as a placeholder; admin will end manually
     const farFuture = new Date('2999-12-31T23:59:59.999Z');
     const auction = await this.prisma.auction.create({
@@ -75,13 +77,13 @@ export class AuctionsService {
         status: 'LIVE',
       },
     });
-    console.log(`[startAuction] Auction started: id=${auction.id}`);
+    this.logger.log(`[startAuction] Auction started: id=${auction.id}`);
     return auction;
   }
 
   // End auction manually
   async endAuction(id: number) {
-    console.log(`[endAuction] Ending auction id=${id}`);
+    this.logger.log(`[endAuction] Ending auction id=${id}`);
     const auction = await this.prisma.auction.update({
       where: { id },
       data: {
@@ -89,7 +91,7 @@ export class AuctionsService {
         endTime: new Date(),
       },
     });
-    console.log(`[endAuction] Auction ended: id=${auction.id}`);
+    this.logger.log(`[endAuction] Auction ended: id=${auction.id}`);
     return auction;
   }
 
@@ -100,7 +102,7 @@ export class AuctionsService {
     scheduledStartTime: string;
     scheduledEndTime: string;
   }) {
-    console.log(`[scheduleAuction] Scheduling auction for carId=${data.carId}, startingBid=${data.startingBid}, start=${data.scheduledStartTime}, end=${data.scheduledEndTime}`);
+    this.logger.log(`[scheduleAuction] Scheduling auction for carId=${data.carId}, startingBid=${data.startingBid}, start=${data.scheduledStartTime}, end=${data.scheduledEndTime}`);
     const auction = await this.prisma.auction.create({
       data: {
         carId: data.carId,
@@ -111,22 +113,22 @@ export class AuctionsService {
         status: 'UPCOMING',
       },
     });
-    console.log(`[scheduleAuction] Auction scheduled: id=${auction.id}`);
+    this.logger.log(`[scheduleAuction] Auction scheduled: id=${auction.id}`);
     return auction;
   }
 
   findAllAuctions() {
-    console.log(`[findAllAuctions] Fetching all auctions`);
+    this.logger.log(`[findAllAuctions] Fetching all auctions`);
     return this.prisma.auction.findMany();
   }
 
   findAuctionById(id: number) {
-    console.log(`[findAuctionById] Fetching auction id=${id}`);
+    this.logger.log(`[findAuctionById] Fetching auction id=${id}`);
     return this.prisma.auction.findUnique({ where: { id } });
   }
 
   deleteAuction(id: number) {
-    console.log(`[deleteAuction] Deleting auction id=${id}`);
+    this.logger.log(`[deleteAuction] Deleting auction id=${id}`);
     return this.prisma.auction.delete({ where: { id } });
   }
 }

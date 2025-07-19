@@ -1,10 +1,12 @@
 
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit, Logger } from '@nestjs/common';
 import Redis, { Redis as RedisInstance } from 'ioredis';
 import { EventEmitter } from 'events';
 
+
 @Injectable()
 export class PubsubService extends EventEmitter implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PubsubService.name);
   private pub: RedisInstance;
   private sub: RedisInstance;
   private cache: RedisInstance;
@@ -61,13 +63,13 @@ export class PubsubService extends EventEmitter implements OnModuleInit, OnModul
   // Handle Redis connection failures and reconnection
   private handleReconnect(client: RedisInstance, label: string) {
     client.on('error', (err) => {
-      console.error(`[PubsubService][${label}] Redis error:`, err);
+      this.logger.error(`[${label}] Redis error: ${err}`);
     });
     client.on('reconnecting', () => {
-      console.warn(`[PubsubService][${label}] Redis reconnecting...`);
+      this.logger.warn(`[${label}] Redis reconnecting...`);
     });
     client.on('connect', () => {
-      console.log(`[PubsubService][${label}] Redis connected`);
+      this.logger.log(`[${label}] Redis connected`);
     });
   }
 }

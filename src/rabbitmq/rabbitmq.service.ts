@@ -1,8 +1,10 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import * as amqp from 'amqplib';
+
 
 @Injectable()
 export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(RabbitmqService.name);
   private connection: amqp.Connection;
   private channel: amqp.Channel;
   private readonly exchanges = {
@@ -44,7 +46,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     this.consumeNotificationQueue();
     this.consumeAuditQueue();
     this.consumeDLQ();
-    console.log('[RabbitmqService] RabbitMQ connected and queues/exchanges set up');
+    this.logger.log('RabbitMQ connected and queues/exchanges set up');
   }
 
   async onModuleDestroy() {
@@ -69,10 +71,10 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       try {
         const bid = JSON.parse(msg.content.toString());
         // TODO: Process bid (call service, etc.)
-        console.log('[RabbitmqService] Processed bid:', bid);
+        this.logger.log(`Processed bid: ${JSON.stringify(bid)}`);
         this.channel.ack(msg);
       } catch (err) {
-        console.error('[RabbitmqService] Bid processing failed, sending to DLQ:', err);
+        this.logger.error(`Bid processing failed, sending to DLQ: ${err}`);
         this.channel.nack(msg, false, false); // Send to DLQ
       }
     });
@@ -83,7 +85,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       try {
         const notification = JSON.parse(msg.content.toString());
         // TODO: Send notification (WebSocket, email, etc.)
-        console.log('[RabbitmqService] Notification:', notification);
+        this.logger.log(`Notification: ${JSON.stringify(notification)}`);
         this.channel.ack(msg);
       } catch (err) {
         this.channel.nack(msg, false, false);
@@ -96,7 +98,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       try {
         const audit = JSON.parse(msg.content.toString());
         // TODO: Log audit event
-        console.log('[RabbitmqService] Audit:', audit);
+        this.logger.log(`Audit: ${JSON.stringify(audit)}`);
         this.channel.ack(msg);
       } catch (err) {
         this.channel.nack(msg, false, false);
@@ -107,7 +109,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     await this.channel.consume(this.queues.dlq, async (msg) => {
       if (!msg) return;
       // TODO: Handle failed messages (alert, log, etc.)
-      console.warn('[RabbitmqService] DLQ message:', msg.content.toString());
+      this.logger.warn(`DLQ message: ${msg.content.toString()}`);
       this.channel.ack(msg);
     });
   }
