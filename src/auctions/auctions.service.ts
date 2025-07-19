@@ -154,7 +154,17 @@ export class AuctionsService {
       orderBy: { timestamp: 'asc' },
       include: {
         user: {
-          select: { id: true, username: true }
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true
+          }
         }
       }
     });
