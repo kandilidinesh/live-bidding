@@ -16,12 +16,23 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  username  String
+  username  String   @unique
   email     String   @unique
+  firstName String
+  lastName  String
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   bids        Bid[]
   auctionsWon Auction[] @relation("AuctionWinner")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SELLER
 }
 
 model Auction {
