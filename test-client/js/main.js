@@ -439,19 +439,32 @@ function initSocket() {
       (data.userId !== undefined || data.username);
     if (!isDuplicate && isValid) {
       let firstName = data.firstName,
-        lastName = data.lastName;
-      if (!firstName && !lastName && users && Array.isArray(users)) {
+        lastName = data.lastName,
+        username = data.username;
+      if (users && Array.isArray(users)) {
         const u = users.find((u) => u.id == data.userId);
         if (u) {
-          firstName = u.firstName;
-          lastName = u.lastName;
+          if (!firstName) firstName = u.firstName;
+          if (!lastName) lastName = u.lastName;
+          if (!username) username = u.username;
         }
+      }
+      // Compose display name: prefer firstName + lastName, else username, else fallback
+      let displayName = '';
+      if (firstName || lastName) {
+        displayName = ((firstName || '') + ' ' + (lastName || '')).trim();
+      }
+      if (!displayName && username) {
+        displayName = username;
+      }
+      if (!displayName) {
+        displayName = 'User ' + (data.userId || '');
       }
       bidHistory.push({
         id: data.id,
         amount: data.amount,
         userId: data.userId,
-        username: data.username,
+        username: displayName,
         firstName,
         lastName,
         timestamp: data.timestamp || new Date().toISOString(),
