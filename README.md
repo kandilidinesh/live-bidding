@@ -120,10 +120,17 @@ This project implements a scalable, real-time live car auction system. It is des
    npm run start:dev
    ```
 
-6. **Access the test client UI:**
-   The test client UI is served directly by the NestJS backend.
 
-   Open [http://localhost:3000/index.html](http://localhost:3000/index.html) in your browser for the live auction UI.
+6. **Serve the test client UI:**
+   The test client UI is a static site located in the `test-client` folder. Serve it in a new terminal using:
+
+   ```bash
+   npx serve ./test-client
+   ```
+
+   This will start a local server (default: http://localhost:3000 or another available port).
+
+   Open it in your browser for the live auction UI demo.
 
 ## Usage
 
