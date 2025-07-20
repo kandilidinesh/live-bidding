@@ -1,0 +1,32 @@
+/* Neon green animated border for winner capsule */
+
+.winner-capsule.neon {
+  position: relative;
+  z-index: 1;
+  border: 2px solid #39ff14;
+  box-shadow:
+    0 0 4px #39ff14,
+    0 0 8px #39ff14;
+  animation: neon-glow 1.5s linear infinite;
+}
+
+@keyframes neon-glow {
+  0% {
+    box-shadow:
+      0 0 4px #39ff14,
+      0 0 8px #39ff14;
+    border-color: #39ff14;
+  }
+  50% {
+    box-shadow:
+      0 0 8px #00ff99,
+      0 0 16px #00ff99;
+    border-color: #00ff99;
+  }
+  100% {
+    box-shadow:
+      0 0 4px #39ff14,
+      0 0 8px #39ff14;
+    border-color: #39ff14;
+  }
+}

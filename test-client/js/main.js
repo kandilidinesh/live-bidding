@@ -533,91 +533,16 @@ function updateFooterContent() {
       winnerName = 'User #' + selectedAuction.winnerId;
 
     footerContent.innerHTML = `
-            <div id="fireworks-bg" style="position:absolute;left:0;top:0;width:100vw;height:100%;z-index:0;pointer-events:none;"></div>
             <div style="position:relative;z-index:2;display:flex;align-items:center;width:100%;">
               ${capsule}
-              <div class="connection-capsule offline" style="color:#ff6f3c;border-color:#ff6f3c;margin-left:0.7em;">
-                <span class="connection-dot" style="background:#ff6f3c;"></span>Auction has ended
+              <div class="connection-capsule offline" style="color:#bfc9d1;border-color:#bfc9d1;margin-left:0.7em;">
+                <span class="connection-dot" style="background:#bfc9d1;"></span>Auction has ended
               </div>
-              <div class="connection-capsule winner-capsule" style="color:#bfc9d1;background:linear-gradient(90deg,#232b39,#232b39);border-color:#ffb347;margin-left:auto;box-shadow:0 2px 16px 0 rgba(255,111,60,0.10);font-weight:500;font-family:'Montserrat', 'Segoe UI', Arial, sans-serif;">
-        Winner: <span style="margin-left:0.5em;color:#ff6f3c;font-weight:500;font-family:'Montserrat', 'Segoe UI', Arial, sans-serif;">${winnerName ? winnerName : 'No winner'}</span>
+              <div class="connection-capsule winner-capsule neon" style="color:#bfc9d1;background:linear-gradient(90deg,#232b39,#232b39);margin-left:auto;font-weight:500;font-family:'Montserrat', 'Segoe UI', Arial, sans-serif;">
+        Winner: <span style="margin-left:0.5em;color:#39ff14;font-weight:500;font-family:'Montserrat', 'Segoe UI', Arial, sans-serif;">${winnerName ? winnerName : 'No winner'}</span>
               </div>
             </div>
           `;
-
-    showFireworks();
-
-    function showFireworks() {
-      let fw = document.getElementById('fireworks-bg');
-      if (!fw) return;
-      fw.innerHTML =
-        '<canvas id="fireworks-canvas" style="width:100vw;height:100%;display:block;"></canvas>';
-      const canvas = document.getElementById('fireworks-canvas');
-      if (!canvas) return;
-
-      canvas.width = window.innerWidth;
-      canvas.height = fw.offsetHeight || 120;
-
-      const ctx = canvas.getContext('2d');
-      let particles = [];
-      function randomColor() {
-        const colors = [
-          '#ffb347',
-          '#ff6f3c',
-          '#fff176',
-          '#f8fafc',
-          '#ff4081',
-          '#7c4dff',
-        ];
-        return colors[Math.floor(Math.random() * colors.length)];
-      }
-      function createFirework() {
-        const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
-        const y = Math.random() * canvas.height * 0.3 + canvas.height * 0.2;
-        const count = 24 + Math.floor(Math.random() * 8);
-        for (let i = 0; i < count; i++) {
-          const angle = Math.PI * 2 * (i / count);
-          const speed = 2 + Math.random() * 2;
-          particles.push({
-            x,
-            y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            alpha: 1,
-            color: randomColor(),
-            radius: 2 + Math.random() * 2,
-          });
-        }
-      }
-      let frame = 0;
-      function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let p of particles) {
-          ctx.globalAlpha = p.alpha;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-
-        particles.forEach((p) => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vx *= 0.98;
-          p.vy *= 0.98;
-          p.vy += 0.04; // gravity
-          p.alpha *= 0.97;
-        });
-        particles = particles.filter((p) => p.alpha > 0.05);
-        frame++;
-        if (frame % 30 === 0) createFirework();
-        requestAnimationFrame(animate);
-      }
-      createFirework();
-      createFirework();
-      animate();
-    }
   } else if (userId === 'admin' || isNaN(Number(userId))) {
 
     footerContent.innerHTML = `
