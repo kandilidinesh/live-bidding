@@ -91,7 +91,6 @@ This project implements a scalable, real-time live car auction system. It is des
    npm install
    ```
 
-
 4. **Set up the database and seed demo data:**
    - Update your `.env` with the correct `DATABASE_URL` if needed.
    - Run Prisma migrations (creates tables and enums):
@@ -99,6 +98,7 @@ This project implements a scalable, real-time live car auction system. It is des
      ```bash
      npx prisma migrate dev
      ```
+
      When prompted for a migration name, enter something like `init` or `initial-schema`.
 
    - (Optional) Generate the Prisma client (usually automatic after migration):
@@ -112,6 +112,7 @@ This project implements a scalable, real-time live car auction system. It is des
      ```bash
      npx ts-node prisma/seed.ts
      ```
+
      This will populate the database with users, auctions, and bids for demo/testing.
 
 5. **Start the backend:**
@@ -119,7 +120,6 @@ This project implements a scalable, real-time live car auction system. It is des
    ```bash
    npm run start:dev
    ```
-
 
 6. **Serve the test client UI:**
    The test client UI is a static site located in the `test-client` folder. Serve it in a new terminal using:
@@ -146,7 +146,6 @@ This project implements a scalable, real-time live car auction system. It is des
 - **Real-time:** Socket.IO, Redis Pub/Sub
 - **Frontend:** HTML/JS (no framework)
 
-
 ## Scalability
 
 - **Concurrency:** All bid operations are transactional and concurrency-safe.
@@ -155,10 +154,10 @@ This project implements a scalable, real-time live car auction system. It is des
 
 ## Security & Authentication
 
-
 Authentication and authorization are **not implemented** in this demo, as they were not part of the requirements. All users, including admin, are selected from a dropdown for demonstration purposes only.
 
 However, the backend is structured to make adding real authentication straightforward:
+
 - All REST endpoints are protected by an `ApiKeyGuard` (API key in header), which can be replaced or extended with JWT, OAuth, or session-based authentication.
 - The user model includes a `role` field for future role-based access control.
 - The codebase uses NestJS guards, making it easy to integrate more advanced authentication and authorization logic.
@@ -250,7 +249,7 @@ The provided UI (test client) is focused on the core live bidding experience and
   - **Redis Pub/Sub & Caching:** The backend uses Redis to cache the current highest bid and to broadcast bid updates across server instances. These mechanisms are transparent to the UI.
   - **Upcoming & Scheduled Auctions:** Auctions that are scheduled for the future or not yet started are not displayed in the UI. Only live auctions are visible to users.
   - **Session & Real-Time Data Sync:** Redis is used for real-time data synchronization and session-like state, but session management is not exposed in the UI.
-   - **Optimistic Locking & Concurrency:** Prisma transactions and database-level constraints ensure safe concurrent bidding, but the UI does not display transaction or locking status.
+  - **Optimistic Locking & Concurrency:** Prisma transactions and database-level constraints ensure safe concurrent bidding, but the UI does not display transaction or locking status.
   - **Full REST API:** The backend exposes a comprehensive set of REST endpoints for auctions, bids, and users (see "REST API Endpoints" section above for details). Only a subset of these endpoints are surfaced in the UI. The following endpoints are **not** covered in the UI:
     - `POST /auctions/schedule` — Schedule a future auction
     - `PATCH /auctions/:id/end` — End an auction via REST (UI uses WebSocket event instead)
@@ -262,7 +261,7 @@ The provided UI (test client) is focused on the core live bidding experience and
 To test high-frequency bidding and multi-user scenarios, you can simulate multiple users interacting with the system:
 
 - **Manual Simulation:**
-  - Open multiple browser tabs or windows at [http://localhost:3000/index.html](http://localhost:3000/index.html).
+  - Open multiple browser tabs or windows with same UI endpoint as served.
   - Select different users from the dropdown in each tab and place bids simultaneously.
 
 - **Observing Results:**
