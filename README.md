@@ -93,6 +93,7 @@ This project implements a scalable, real-time live car auction system. It is des
 
 4. **Set up the database and seed demo data:**
    - Update your `.env` with the correct `DATABASE_URL` if needed.
+      >**Note:** The `.env` file is included in this repository for demo and local development purposes only. It does not contain any sensitive production credentials. In real-world projects, never commit `.env` files with secrets to version control.
    - Run Prisma migrations (creates tables and enums):
 
      ```bash
