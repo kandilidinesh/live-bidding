@@ -4,7 +4,6 @@
 
 This project implements a scalable, real-time live car auction system. It is designed to handle high-frequency bids from multiple users, ensure concurrency and data integrity, and provide resilience against DDoS attacks. The backend is built with NestJS, Prisma/PostgreSQL, Redis, and RabbitMQ, and the frontend is a modern, minimal HTML/JS client.
 
-
 ## Features
 
 - **Real-time Bidding:** High-frequency, concurrent bid handling using WebSocket (Socket.IO) and scalable NestJS gateway.
@@ -142,6 +141,7 @@ This project implements a scalable, real-time live car auction system. It is des
 ### REST API Endpoints
 
 #### Auctions
+
 - `GET /auctions` — List all auctions.
 - `POST /auctions` — Create a new auction. Body: `{ carId: string, startingBid: number }`
 - `GET /auctions/:id` — Get details of a specific auction by ID.
@@ -150,22 +150,25 @@ This project implements a scalable, real-time live car auction system. It is des
 - `POST /auctions/schedule` — Schedule a future auction. Body: `{ carId: string, startingBid: number, scheduledStartTime: string, scheduledEndTime: string }`
 
 #### Bids
+
 - `GET /auctions/:id/bids` — Get all bids for a specific auction (ordered by timestamp).
 
 #### Users
+
 - `GET /users` — List all users.
 - `POST /users` — Create a new user. Body: `{ username: string, email: string, firstName?: string, lastName?: string }`
 - `GET /users/:id` — Get details of a specific user by ID.
 
 #### Security
+
 - All endpoints require an API key header: `x-api-key: <your-api-key>`
 
 #### Notes
+
 - All POST and PATCH endpoints expect JSON bodies.
 - Error responses are returned with appropriate HTTP status codes and error messages.
 
 ### Prisma
-
 
 #### Database Schema
 
@@ -178,7 +181,6 @@ This project implements a scalable, real-time live car auction system. It is des
 - **Transactional Bid Placement:** All bid placements are handled using Prisma's `$transaction` API, ensuring that updating the auction's `currentHighestBid` and creating a new bid happen atomically. This prevents race conditions and guarantees that only one highest bid is accepted at a time, even under high-frequency, concurrent bidding scenarios.
 - **Database Constraints:** The database schema enforces constraints (such as unique and foreign keys) to further prevent data corruption and ensure integrity during concurrent operations.
 - **Optimistic Locking:** The backend logic checks the current highest bid before accepting a new bid, and the transaction will fail if another bid is accepted in the meantime, ensuring safe concurrent updates.
-
 
 ### Redis
 
@@ -197,8 +199,6 @@ This project implements a scalable, real-time live car auction system. It is des
 - **WebSocket Guard:** Limits connections per user/IP.
 - **Bid Throttle Interceptor:** Throttles bid frequency per user/IP.
 
-
-
 ## UI Coverage Notice
 
 The provided UI (test client) is focused on the core live bidding experience and does not expose all backend or infrastructure features. Here are the technical details:
@@ -215,16 +215,14 @@ The provided UI (test client) is focused on the core live bidding experience and
   - **System Health & Monitoring:** There is no UI dashboard for system health, queue status, or Redis/RabbitMQ connection state.
   - **DDoS Protection:** WebSocket connection rate limiting (`WsConnectionRateLimitGuard`) and bid throttling (`BidThrottleInterceptor`) are enforced in the backend, but users only see error messages if limits are hit.
   - **Redis Pub/Sub & Caching:** The backend uses Redis to cache the current highest bid and to broadcast bid updates across server instances. These mechanisms are transparent to the UI.
+  - **Upcoming & Scheduled Auctions:** Auctions that are scheduled for the future or not yet started are not displayed in the UI. Only live auctions are visible to users.
   - **Session & Real-Time Data Sync:** Redis is used for real-time data synchronization and session-like state, but session management is not exposed in the UI.
+   - **Optimistic Locking & Concurrency:** Prisma transactions and database-level constraints ensure safe concurrent bidding, but the UI does not display transaction or locking status.
   - **Full REST API:** The backend exposes a comprehensive set of REST endpoints for auctions, bids, and users (see "REST API Endpoints" section above for details). Only a subset of these endpoints are surfaced in the UI. The following endpoints are **not** covered in the UI:
     - `POST /auctions/schedule` — Schedule a future auction
     - `PATCH /auctions/:id/end` — End an auction via REST (UI uses WebSocket event instead)
     - `POST /users` — Create a new user
     - `GET /users/:id` — Get details of a specific user
-  - **Optimistic Locking & Concurrency:** Prisma transactions and database-level constraints ensure safe concurrent bidding, but the UI does not display transaction or locking status.
-
-**Summary:**
-The UI covers the main user/admin flows (bidding, auction management, real-time updates), but advanced backend features—such as audit trails, infrastructure health, message queue internals, and distributed cache/pubsub—are only implemented and observable in the backend code and infrastructure, not in the UI.
 
 ## User Simulation
 
