@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Car Auction</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/main.css" />
+  </head>
+  <body>
+    <header>
+      <span class="logo"><span>Live Car Auction</span></span>
+      <div id="auctionTimer" class="auction-timer"></div>
+      <div class="user-select-wrap">
+        <div class="custom-select">
+          <select id="userSelect"></select>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-container">
+      <aside class="sidebar">
+        <div class="auction-list" id="auctionList"></div>
+        <div id="adminBtnBar" class="admin-btn-bar"></div>
+      </aside>
+      <div class="main-content">
+        <main id="chat"></main>
+        <footer>
+          <div id="footerContent"></div>
+        </footer>
+      </div>
+    </div>
+    <script src="./js/main.js"></script>
+  </body>
+</html>
