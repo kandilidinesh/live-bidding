@@ -2,6 +2,6 @@ import { Module } from '@nestjs/common';
 import { PubsubService } from './pubsub/pubsub.service';
 
 @Module({
-  providers: [PubsubService]
+  providers: [PubsubService],
 })
 export class RedisModule {}

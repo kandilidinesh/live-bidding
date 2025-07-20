@@ -8,7 +8,9 @@ const MAX_CONNECTIONS_PER_IP = 5; // Adjust as needed
 
 @Injectable()
 export class WsConnectionRateLimitGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const client: Socket = context.switchToWs().getClient();
     const ip = client.handshake.address;
     connectionCounts[ip] = (connectionCounts[ip] || 0) + 1;

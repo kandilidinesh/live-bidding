@@ -722,8 +722,6 @@ select:focus {
   background: #4caf50;
 }
 
-
-
 /* Upcoming auction indicator color (gold/orange) */
 .auction-status-dot.upcoming {
   background: #ff9800 !important;

@@ -1,4 +1,9 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Socket } from 'socket.io';
@@ -14,7 +19,9 @@ export class BidThrottleInterceptor implements NestInterceptor {
     const client: Socket = context.switchToWs().getClient();
     const ip = client.handshake.address;
     const now = Date.now();
-    bidTimestamps[ip] = (bidTimestamps[ip] || []).filter(ts => now - ts < WINDOW_MS);
+    bidTimestamps[ip] = (bidTimestamps[ip] || []).filter(
+      (ts) => now - ts < WINDOW_MS,
+    );
     if (bidTimestamps[ip].length >= MAX_BIDS_PER_WINDOW) {
       client.emit('bidError', 'Too many bids, please slow down.');
       return throwError(() => new Error('Rate limit exceeded'));
@@ -23,7 +30,7 @@ export class BidThrottleInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(() => {
         // Optionally, log or monitor
-      })
+      }),
     );
   }
 }

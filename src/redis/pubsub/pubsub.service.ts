@@ -1,11 +1,17 @@
-
-import { Injectable, OnModuleDestroy, OnModuleInit, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+  Logger,
+} from '@nestjs/common';
 import Redis, { Redis as RedisInstance } from 'ioredis';
 import { EventEmitter } from 'events';
 
-
 @Injectable()
-export class PubsubService extends EventEmitter implements OnModuleInit, OnModuleDestroy {
+export class PubsubService
+  extends EventEmitter
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PubsubService.name);
   private pub: RedisInstance;
   private sub: RedisInstance;

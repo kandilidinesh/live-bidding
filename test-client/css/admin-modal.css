@@ -1,7 +1,10 @@
 /* Admin 2FA Modal Styles */
 .admin-modal-blur {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100vw;
   height: 100vh;
   background: rgba(34, 40, 49, 0.65);
@@ -14,7 +17,7 @@
 .admin-modal {
   background: #232b39;
   border-radius: 18px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
   padding: 2.5em 2em 2em 2em;
   min-width: 320px;
   max-width: 90vw;
@@ -30,7 +33,7 @@
   margin-bottom: 1.2em;
   letter-spacing: 0.03em;
 }
-.admin-modal input[type="text"] {
+.admin-modal input[type='text'] {
   font-size: 1.5em;
   letter-spacing: 0.4em;
   text-align: center;
