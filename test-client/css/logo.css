@@ -1,10 +1,26 @@
+/* Mini title under logo for shrink mode */
+.logo-mini-title {
+  display: none;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 0.75em;
+  color: #d4af58;
+  margin-top: 0.15em;
+  text-align: center;
+  line-height: 1.1;
+}
+
+@media (max-width: 1100px), (max-height: 100px) {
+  .logo-mini-title {
+    display: block;
+  }
+}
 @import url('https://fonts.googleapis.com/css?family=Montserrat:700&display=swap');
 
 .header-absolute-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 2.1em;
   font-weight: 800;
   color: var(--text-main);
@@ -17,6 +33,14 @@
   pointer-events: none;
   white-space: nowrap;
   z-index: 10;
+  flex: 1 1 0%;
+  min-width: 0;
+  flex-shrink: 1;
+}
+@media (max-width: 1100px), (max-height: 100px) {
+  .header-absolute-center {
+    display: none !important;
+  }
 }
 header {
   position: relative;
@@ -32,6 +56,13 @@ header .header-left {
   display: flex;
   align-items: center;
 }
+
+@media (max-width: 1100px), (max-height: 100px) {
+  header .header-left {
+    flex-direction: column;
+    align-items: center;
+  }
+}
 header .header-center {
   flex: 1;
   display: flex;
@@ -42,6 +73,14 @@ header .header-right {
   display: flex;
   align-items: center;
   gap: 1.2em;
+  min-width: 320px;
+  flex-wrap: nowrap;
+}
+
+.auction-timer {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 header .logo-img {
   height: 48px;
