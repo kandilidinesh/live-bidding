@@ -93,7 +93,7 @@ This project implements a scalable, real-time live car auction system. It is des
 
 4. **Set up the database and seed demo data:**
    - Update your `.env` with the correct `DATABASE_URL` if needed.
-      >**Note:** The `.env` file is included in this repository for demo and local development purposes only. It does not contain any sensitive production credentials. In real-world projects, never commit `.env` files with secrets to version control.
+     > **Note:** The `.env` file is included in this repository for demo and local development purposes only. It does not contain any sensitive production credentials. In real-world projects, never commit `.env` files with secrets to version control.
    - Run Prisma migrations (creates tables and enums):
 
      ```bash
@@ -256,6 +256,26 @@ The provided UI (test client) is focused on the core live bidding experience and
     - `PATCH /auctions/:id/end` — End an auction via REST (UI uses WebSocket event instead)
     - `POST /users` — Create a new user
     - `GET /users/:id` — Get details of a specific user
+
+## API Documentation (Swagger)
+
+The backend provides interactive API documentation using [Swagger UI](https://swagger.io/tools/swagger-ui/) via the NestJS Swagger module.
+
+- **Access Swagger UI:**
+  - Start the backend server (`npm run start:dev`).
+  - Open your browser and go to: [http://localhost:3000/api](http://localhost:3000/api)
+
+- **Authentication:**
+  - All endpoints require an API key in the `x-api-key` header.
+  - Click the "Authorize" button in Swagger UI and enter your API key value.
+  - You can now use the "Try it out" feature for all protected endpoints.
+
+- **Schemas:**
+  - All request/response DTOs are documented in the "Schemas" section.
+  - Example values and descriptions are provided for each property.
+
+- **Live Testing:**
+  - You can make real API calls directly from the Swagger UI for development and testing.
 
 ## User Simulation
 

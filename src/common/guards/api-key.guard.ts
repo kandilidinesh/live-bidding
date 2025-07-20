@@ -1,7 +1,12 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Request } from 'express';
 
-const API_KEY = process.env.API_KEY || 'my-secret-api-key';
+const API_KEY = process.env.API_KEY;
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
