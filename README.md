@@ -1,6 +1,3 @@
-
-
-
 # Live Car Bidding System
 
 ## Objective
@@ -94,13 +91,28 @@ This project implements a scalable, real-time live car auction system. It is des
    npm install
    ```
 
-4. **Set up the database:**
-   - Update your `.env` with the correct `DATABASE_URL` if needed.
-   - Run Prisma migrations:
 
-   ```bash
-   npx prisma migrate dev
-   ```
+4. **Set up the database and seed demo data:**
+   - Update your `.env` with the correct `DATABASE_URL` if needed.
+   - Run Prisma migrations (creates tables and enums):
+
+     ```bash
+     npx prisma migrate dev
+     ```
+     When prompted for a migration name, enter something like `init` or `initial-schema`.
+
+   - (Optional) Generate the Prisma client (usually automatic after migration):
+
+     ```bash
+     npx prisma generate
+     ```
+
+   - Seed the database with demo data:
+
+     ```bash
+     npx ts-node prisma/seed.ts
+     ```
+     This will populate the database with users, auctions, and bids for demo/testing.
 
 5. **Start the backend:**
 

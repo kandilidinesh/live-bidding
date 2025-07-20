@@ -355,18 +355,32 @@ function renderAuctionList() {
     .sort((a, b) => a.id - b.id)
     .forEach((a) => {
       const item = document.createElement('div');
-      item.className = 'auction-item' + (a.id == auctionId ? ' selected' : '');
+
+      // Add 'upcoming' class for upcoming auctions
+      let isUpcoming = a.status === 'UPCOMING';
+      item.className = 'auction-item' + (a.id == auctionId ? ' selected' : '') + (isUpcoming ? ' upcoming' : '');
 
       let carLabel =
         typeof a.carId === 'string' && a.carId.trim() ? a.carId : 'Car';
+
 
       let statusColor =
         a.status === 'LIVE'
           ? '#4caf50'
           : a.status === 'ENDED'
             ? '#bfc9d1'
-            : '#7a869a';
-      let statusDot = `<span class="auction-status-dot" style="display:inline-block;width:0.7em;height:0.7em;border-radius:50%;background:${statusColor};margin-right:0.4em;vertical-align:middle;"></span>`;
+            : a.status === 'UPCOMING'
+              ? '#ff9800'
+              : '#7a869a';
+
+      // Add 'upcoming' or 'ended' class to status dot if needed
+      let statusDotClass = 'auction-status-dot';
+      if (isUpcoming) {
+        statusDotClass += ' upcoming';
+      } else if (a.status === 'ENDED') {
+        statusDotClass += ' ended';
+      }
+      let statusDot = `<span class="${statusDotClass}"></span>`;
       item.innerHTML = `${statusDot}<span class="id">#${a.id}</span> <span class="car">${carLabel}</span>`;
 
       item.style.boxShadow = 'none';
@@ -537,7 +551,15 @@ function updateFooterContent() {
               </div>
             </div>
           `;
-  } else if (userId === 'admin' || isNaN(Number(userId))) {
+  } else if (selectedAuction && selectedAuction.status === 'UPCOMING') {
+    // Show Upcoming Auction capsule, no bid field
+    footerContent.innerHTML = `
+      ${capsule}
+      <div class="connection-capsule offline" style="color:#ff9800;border-color:#ff9800;margin-left:0.7em;">
+        <span class="connection-dot" style="background:#ff9800;"></span>Upcoming Auction
+      </div>
+    `;
+  } else if (users.find((u) => String(u.id) === String(userId) && u.role === 'ADMIN')) {
     footerContent.innerHTML = `
             ${capsule}
             <div class="connection-capsule offline" style="color:#bfc9d1;border-color:#bfc9d1;margin-left:0.7em;">
@@ -575,33 +597,36 @@ document.body.classList.add('dark');
 document.body.style.background =
   'linear-gradient(135deg, #181c23 0%, #232b39 100%)';
 
-// Prompt for admin 2FA modal on reload if admin is selected
+// Prompt for admin 2FA modal on reload if admin user is selected
 window.addEventListener('DOMContentLoaded', function () {
   const userSelect = document.getElementById('userSelect');
   // Wait for userSelect to be populated
   setTimeout(() => {
-    if (userSelect && userSelect.value === 'admin') {
-      showAdmin2FAModal(() => {
-        userId = 'admin';
-        localStorage.setItem('auctionUserId', userId);
-        updateAdminButton();
-        updateFooterContent();
-        renderBidHistory();
-      }, () => {
-        // If cancelled or failed, revert selection
-        const prev = localStorage.getItem('auctionUserId');
-        if (prev && prev !== 'admin') {
-          userSelect.value = prev;
-          userId = prev;
-        } else {
-          userSelect.selectedIndex = 1;
-          userId = userSelect.value;
-        }
-        localStorage.setItem('auctionUserId', userId);
-        updateAdminButton();
-        updateFooterContent();
-        renderBidHistory();
-      });
+    if (userSelect && users.length > 0) {
+      const selectedUser = users.find((u) => String(u.id) === String(userSelect.value));
+      if (selectedUser && selectedUser.role === 'ADMIN') {
+        showAdmin2FAModal(() => {
+          userId = selectedUser.id;
+          localStorage.setItem('auctionUserId', userId);
+          updateAdminButton();
+          updateFooterContent();
+          renderBidHistory();
+        }, () => {
+          // If cancelled or failed, revert selection
+          const prev = localStorage.getItem('auctionUserId');
+          if (prev && String(prev) !== String(selectedUser.id)) {
+            userSelect.value = prev;
+            userId = prev;
+          } else {
+            userSelect.selectedIndex = 0;
+            userId = userSelect.value;
+          }
+          localStorage.setItem('auctionUserId', userId);
+          updateAdminButton();
+          updateFooterContent();
+          renderBidHistory();
+        });
+      }
     }
   }, 200);
 });
@@ -640,15 +665,13 @@ fetch('http://localhost:3000/users', {
     users = data;
     userSelect.innerHTML = '';
 
-    const adminOpt = document.createElement('option');
-    adminOpt.value = 'admin';
-    adminOpt.textContent = 'Admin';
-    userSelect.appendChild(adminOpt);
     (data || []).forEach((u) => {
       const opt = document.createElement('option');
       opt.value = u.id;
       let name = '';
-      if (u.firstName || u.lastName) {
+      if (u.role === 'ADMIN') {
+        name = (u.firstName || u.lastName) ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : 'Admin';
+      } else if (u.firstName || u.lastName) {
         name = `${u.firstName || ''} ${u.lastName || ''}`.trim();
       } else {
         name = u.username || u.email || 'User';
@@ -675,9 +698,12 @@ fetch('http://localhost:3000/users', {
 
 userSelect.onchange = (e) => {
   const selected = e.target.value;
-  if (selected === 'admin') {
+  userId = selected;
+  // Check if selected user is admin
+  const selectedUser = users.find((u) => String(u.id) === String(userId));
+  if (selectedUser && selectedUser.role === 'ADMIN') {
     showAdmin2FAModal(() => {
-      userId = 'admin';
+      userId = selectedUser.id;
       localStorage.setItem('auctionUserId', userId);
       updateAdminButton();
       updateFooterContent();
@@ -686,11 +712,11 @@ userSelect.onchange = (e) => {
       // If cancelled or failed, revert selection
       // Try to select previous user or first user
       const prev = localStorage.getItem('auctionUserId');
-      if (prev && prev !== 'admin') {
+      if (prev && String(prev) !== String(selectedUser.id)) {
         userSelect.value = prev;
         userId = prev;
       } else {
-        userSelect.selectedIndex = 1;
+        userSelect.selectedIndex = 0;
         userId = userSelect.value;
       }
       localStorage.setItem('auctionUserId', userId);
@@ -700,7 +726,6 @@ userSelect.onchange = (e) => {
     });
     return;
   }
-  userId = selected;
   localStorage.setItem('auctionUserId', userId);
   updateAdminButton();
   updateFooterContent();
@@ -791,7 +816,8 @@ function updateAdminButton() {
   adminBar.innerHTML = '';
   const selectedAuction = (auctions || []).find((a) => a.id == auctionId);
   const isEnded = selectedAuction && selectedAuction.status === 'ENDED';
-  if (userSelect.value === 'admin') {
+  const selectedUser = users.find((u) => String(u.id) === String(userSelect.value));
+  if (selectedUser && selectedUser.role === 'ADMIN') {
     // Add button
     const addBtn = document.createElement('button');
     addBtn.id = 'addAuctionBtn';

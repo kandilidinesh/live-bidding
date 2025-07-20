@@ -1,3 +1,11 @@
+/* Ended auction indicator color (gray) */
+.auction-status-dot.ended {
+  background: #bfc9d1 !important;
+  width: 0.55em !important;
+  height: 0.55em !important;
+  display: inline-block !important;
+  z-index: 2;
+}
 :root {
   --glass-bg: rgba(34, 40, 49, 0.85);
   --glass-blur: 18px;
@@ -12,7 +20,7 @@
   --input-bg: #232b39;
   --input-border: #232b39;
   --header-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.13);
-  --sidebar-width: 270px;
+  --sidebar-width: 340px;
 }
 
 body {
@@ -49,6 +57,26 @@ body {
   backdrop-filter: blur(var(--glass-blur));
   z-index: 2;
 }
+
+/* Sidebar custom scrollbar styles */
+.auction-list::-webkit-scrollbar {
+  width: 9px;
+  background: #181c23;
+  border-radius: 8px;
+}
+.auction-list::-webkit-scrollbar-thumb {
+  background: #232b39;
+  border-radius: 8px;
+  min-height: 36px;
+  border: 2px solid #181c23;
+}
+.auction-list::-webkit-scrollbar-thumb:hover {
+  background: #393e46;
+}
+.auction-list {
+  scrollbar-width: thin;
+  scrollbar-color: #232b39 #181c23;
+}
 .sidebar-title {
   font-size: 1.08em;
   font-weight: 700;
@@ -64,6 +92,7 @@ body {
   gap: 0.1em;
   padding: 0 0.2em 0.7em 0.2em;
 }
+
 .auction-item {
   display: flex;
   align-items: center;
@@ -682,13 +711,26 @@ select:focus {
   background-position: center;
   z-index: 2;
 }
+/* Default status dot (live/active) */
 .auction-status-dot {
   display: inline-block;
-  width: 0.7em;
-  height: 0.7em;
+  width: 0.55em;
+  height: 0.55em;
   border-radius: 50%;
   margin-right: 0.4em;
   vertical-align: middle;
+  background: #4caf50;
+}
+
+
+
+/* Upcoming auction indicator color (gold/orange) */
+.auction-status-dot.upcoming {
+  background: #ff9800 !important;
+  width: 0.55em !important;
+  height: 0.55em !important;
+  display: inline-block !important;
+  z-index: 2;
 }
 .auction-status-text {
   font-size: 0.93em;

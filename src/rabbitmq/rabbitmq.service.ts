@@ -1,6 +1,10 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import * as amqp from 'amqplib';
-
 
 @Injectable()
 export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
@@ -24,10 +28,18 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     this.connection = await amqp.connect('amqp://localhost');
     this.channel = await this.connection.createChannel();
     // Exchanges
-    await this.channel.assertExchange(this.exchanges.bid, 'direct', { durable: true });
-    await this.channel.assertExchange(this.exchanges.notification, 'fanout', { durable: true });
-    await this.channel.assertExchange(this.exchanges.audit, 'fanout', { durable: true });
-    await this.channel.assertExchange(this.exchanges.dlx, 'fanout', { durable: true });
+    await this.channel.assertExchange(this.exchanges.bid, 'direct', {
+      durable: true,
+    });
+    await this.channel.assertExchange(this.exchanges.notification, 'fanout', {
+      durable: true,
+    });
+    await this.channel.assertExchange(this.exchanges.audit, 'fanout', {
+      durable: true,
+    });
+    await this.channel.assertExchange(this.exchanges.dlx, 'fanout', {
+      durable: true,
+    });
     // Queues with DLQ
     await this.channel.assertQueue(this.queues.bid, {
       durable: true,
@@ -38,7 +50,11 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     await this.channel.assertQueue(this.queues.dlq, { durable: true });
     // Bindings
     await this.channel.bindQueue(this.queues.bid, this.exchanges.bid, 'bid');
-    await this.channel.bindQueue(this.queues.notification, this.exchanges.notification, '');
+    await this.channel.bindQueue(
+      this.queues.notification,
+      this.exchanges.notification,
+      '',
+    );
     await this.channel.bindQueue(this.queues.audit, this.exchanges.audit, '');
     await this.channel.bindQueue(this.queues.dlq, this.exchanges.dlx, '');
     // Start consumers
@@ -56,13 +72,28 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
   // --- Producers ---
   async publishBid(bid: any) {
-    await this.channel.publish(this.exchanges.bid, 'bid', Buffer.from(JSON.stringify(bid)), { persistent: true });
+    await this.channel.publish(
+      this.exchanges.bid,
+      'bid',
+      Buffer.from(JSON.stringify(bid)),
+      { persistent: true },
+    );
   }
   async publishNotification(notification: any) {
-    await this.channel.publish(this.exchanges.notification, '', Buffer.from(JSON.stringify(notification)), { persistent: true });
+    await this.channel.publish(
+      this.exchanges.notification,
+      '',
+      Buffer.from(JSON.stringify(notification)),
+      { persistent: true },
+    );
   }
   async publishAudit(audit: any) {
-    await this.channel.publish(this.exchanges.audit, '', Buffer.from(JSON.stringify(audit)), { persistent: true });
+    await this.channel.publish(
+      this.exchanges.audit,
+      '',
+      Buffer.from(JSON.stringify(audit)),
+      { persistent: true },
+    );
   }
   // --- Consumers ---
   private async consumeBidQueue() {

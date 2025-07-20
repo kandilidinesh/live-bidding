@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -35,14 +34,14 @@ enum Role {
 }
 
 model Auction {
-  id                Int      @id @default(autoincrement())
+  id                Int           @id @default(autoincrement())
   carId             String
   startTime         DateTime
   endTime           DateTime
   startingBid       Int
-  currentHighestBid Int      @default(0)
-  status            AuctionStatus // UPCOMING | LIVE | ENDED
-  createdAt         DateTime @default(now())
+  currentHighestBid Int           @default(0)
+  status            AuctionStatus
+  createdAt         DateTime      @default(now())
 
   winnerId Int?
   winner   User? @relation("AuctionWinner", fields: [winnerId], references: [id])
