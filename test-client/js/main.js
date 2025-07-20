@@ -19,7 +19,7 @@ let bidHistory = [];
 
 function renderBidHistory() {
   chat.innerHTML = '';
-  lastDateCapsule = null; // Reset date capsule for each render
+  lastDateCapsule = null;
   addMessage({ message: 'Connected', system: true, sticky: true });
 
   const selectedAuction = (auctions || []).find((a) => a.id == auctionId);
@@ -62,7 +62,6 @@ function renderBidHistory() {
       }
       let showName = '';
       if (resolvedUserId == userId) {
-
         let fn = bid.user?.firstName || bid.firstName;
         let ln = bid.user?.lastName || bid.lastName;
         if ((!fn || !ln) && users && Array.isArray(users)) {
@@ -128,12 +127,9 @@ function renderBidHistory() {
   }
 }
 
-
-
 let lastMessageDate = null;
 let lastDateCapsule = null;
 function formatDateCapsule(dateObj) {
-
   const msgDate = new Date(
     dateObj.getFullYear(),
     dateObj.getMonth(),
@@ -147,7 +143,7 @@ function formatDateCapsule(dateObj) {
 }
 
 function addDateCapsuleIfNeeded(dateObj) {
-  const dateStr = dateObj.toISOString().slice(0, 10); // YYYY-MM-DD
+  const dateStr = dateObj.toISOString().slice(0, 10);
   const thisCapsule = formatDateCapsule(dateObj);
   if (lastDateCapsule !== thisCapsule) {
     lastDateCapsule = thisCapsule;
@@ -159,7 +155,6 @@ function addDateCapsuleIfNeeded(dateObj) {
 }
 
 function format12HourTime(dateObj) {
-
   return dateObj.toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
@@ -167,25 +162,23 @@ function format12HourTime(dateObj) {
   });
 }
 
-
-
 const USER_COLORS = [
-  '#b9bbbe', // mild gray
-  '#7289da', // discord blurple
-  '#43b581', // mild green
-  '#faa61a', // soft yellow
-  '#f47fff', // soft pink
-  '#70a1ff', // soft blue
-  '#a3a3ff', // lavender
-  '#f7b267', // peach
-  '#6e7b8b', // slate
-  '#e3e5e8', // light gray
-  '#ffb6b9', // light red
-  '#ffe066', // pale yellow
-  '#7ed6df', // pale cyan
-  '#b8e994', // pale green
-  '#d3a4ff', // pale purple
-  '#c7ecee', // pale blue
+  '#b9bbbe',
+  '#7289da',
+  '#43b581',
+  '#faa61a',
+  '#f47fff',
+  '#70a1ff',
+  '#a3a3ff',
+  '#f7b267',
+  '#6e7b8b',
+  '#e3e5e8',
+  '#ffb6b9',
+  '#ffe066',
+  '#7ed6df',
+  '#b8e994',
+  '#d3a4ff',
+  '#c7ecee',
 ];
 function getUserColor(userId) {
   if (!userId) return '#bfc9d1';
@@ -194,7 +187,6 @@ function getUserColor(userId) {
   if (!isNaN(idNum)) {
     return USER_COLORS[idNum % USER_COLORS.length];
   } else {
-
     let hash = 0;
     for (let i = 0; i < String(userId).length; i++) {
       hash = (hash << 5) - hash + String(userId).charCodeAt(i);
@@ -218,12 +210,10 @@ function addMessage({
   userId,
 }) {
   if (system) {
-
     return;
   }
 
   if (!userId) {
-
     if (typeof username === 'string' && users && Array.isArray(users)) {
       let u = users.find(
         (u) =>
@@ -245,7 +235,6 @@ function addMessage({
   if (timestamp) {
     dateObj = new Date(timestamp);
   } else if (meta) {
-
     dateObj = new Date();
   } else {
     dateObj = new Date();
@@ -264,7 +253,6 @@ function addMessage({
   const nameSpan = document.createElement('span');
   nameSpan.className = 'msg-username';
   if (me) {
-
     let fn = firstName;
     let ln = lastName;
     if ((!fn || !ln) && users && Array.isArray(users)) {
@@ -338,13 +326,22 @@ function updateAuctionTimer() {
   if (selectedAuction.status === 'ENDED' && selectedAuction.endTime) {
     const ended = new Date(selectedAuction.endTime).getTime();
     const elapsed = Math.max(0, ended - started);
-    timerEl.innerHTML = `<div class=\"connection-capsule timer-capsule\" style=\"color:#ffb347;border-color:#ffb347;background:#232b39;font-weight:600;font-size:0.93em;gap:0.08em;display:inline-flex;align-items:center;padding:0.12em 0.5em 0.12em 0.5em;min-height:unset;height:1.7em;line-height:1.2em;min-width:320px;max-width:320px;\">⏱ <span style='margin-right:0.13em;'>Auction</span><span style='margin-right:0.13em;'>duration:</span><span style='color:#fff;font-weight:700;margin-left:0.13em;display:inline-block;width:140px;text-align:center;overflow:hidden;text-overflow:ellipsis;'>${formatElapsed(elapsed)}</span></div>`;
+    timerEl.innerHTML = `
+  <div class="timer-capsule">
+    <span class="timer-label">⏱ Auction duration:</span>
+    <span class="timer-value">${formatElapsed(elapsed)}</span>
+  </div>
+`;
   } else {
-
     function render() {
       const now = Date.now();
       const elapsed = Math.max(0, now - started);
-      timerEl.innerHTML = `<div class=\"connection-capsule timer-capsule\" style=\"color:#ffb347;border-color:#ffb347;background:#232b39;font-weight:600;font-size:0.93em;gap:0.08em;display:inline-flex;align-items:center;padding:0.12em 0.5em 0.12em 0.5em;min-height:unset;height:1.7em;line-height:1.2em;min-width:320px;max-width:320px;\">⏱ <span style='margin-right:0.13em;'>Auction</span><span style='margin-right:0.13em;'>duration:</span><span style='color:#fff;font-weight:700;margin-left:0.13em;display:inline-block;width:140px;text-align:center;overflow:hidden;text-overflow:ellipsis;'>${formatElapsed(elapsed)}</span></div>`;
+      timerEl.innerHTML = `
+  <div class="timer-capsule">
+    <span class="timer-label">⏱ Auction duration:</span>
+    <span class="timer-value">${formatElapsed(elapsed)}</span>
+  </div>
+`;
     }
     render();
     timerInterval = setInterval(render, 1000);
@@ -382,7 +379,7 @@ function renderAuctionList() {
           initSocket();
           updateFooterContent();
           updateAuctionTimer();
-          updateAdminButton(); // Ensure admin button updates when switching auctions
+          updateAdminButton();
         }
       };
       auctionList.appendChild(item);
@@ -409,7 +406,6 @@ function initSocket() {
     updateFooterContent();
   });
   socket.on('bidUpdate', (data) => {
-
     let isDuplicate = false;
     if (data.id !== undefined) {
       isDuplicate = bidHistory.some((b) => b.id === data.id);
@@ -460,7 +456,7 @@ function initSocket() {
       }
       renderAuctionList();
       updateFooterContent();
-      updateAdminButton(); // Update admin button when auction ends
+      updateAdminButton();
     }
   });
   socket.on('auctionStarted', (data) => {
@@ -510,7 +506,6 @@ function submitBid() {
   bidAmount.value = '';
 }
 
-
 function updateFooterContent() {
   const footerContent = document.getElementById('footerContent');
   const selectedAuction = (auctions || []).find((a) => a.id == auctionId);
@@ -520,7 +515,6 @@ function updateFooterContent() {
         </div>`;
 
   if (selectedAuction && selectedAuction.status === 'ENDED') {
-
     let winner = null;
     if (selectedAuction.winnerId && users && Array.isArray(users)) {
       winner = users.find((u) => u.id == selectedAuction.winnerId);
@@ -544,7 +538,6 @@ function updateFooterContent() {
             </div>
           `;
   } else if (userId === 'admin' || isNaN(Number(userId))) {
-
     footerContent.innerHTML = `
             ${capsule}
             <div class="connection-capsule offline" style="color:#bfc9d1;border-color:#bfc9d1;margin-left:0.7em;">
@@ -552,7 +545,6 @@ function updateFooterContent() {
             </div>
           `;
   } else {
-
     footerContent.innerHTML =
       capsule +
       `
@@ -578,11 +570,9 @@ function updateFooterContent() {
   }
 }
 
-
 document.body.classList.add('dark');
 document.body.style.background =
   'linear-gradient(135deg, #181c23 0%, #232b39 100%)';
-
 
 fetch('http://localhost:3000/auctions', {
   headers: { 'x-api-key': 'my-secret-api-key' },
@@ -602,7 +592,7 @@ fetch('http://localhost:3000/auctions', {
     renderAuctionList();
     initSocket();
     updateAuctionTimer();
-    updateAdminButton(); // Ensure admin button updates on initial load
+    updateAdminButton();
   })
   .catch((err) => {
     console.error('Error loading auctions:', err);
@@ -655,8 +645,8 @@ userSelect.onchange = (e) => {
   userId = e.target.value;
   localStorage.setItem('auctionUserId', userId);
   updateAdminButton();
-  updateFooterContent(); // Update bid input visibility when user changes
-  renderBidHistory(); // Re-render chat so 'You' is updated
+  updateFooterContent();
+  renderBidHistory();
 };
 
 function updateAdminButton() {
@@ -666,51 +656,25 @@ function updateAdminButton() {
   const selectedAuction = (auctions || []).find((a) => a.id == auctionId);
   const isEnded = selectedAuction && selectedAuction.status === 'ENDED';
   if (userSelect.value === 'admin') {
-
-    const endBtn = document.createElement('button');
-    endBtn.id = 'endAuctionBtn';
-    endBtn.className = 'admin-btn admin-capsule';
-    endBtn.title = 'End Auction';
-    endBtn.textContent = 'End';
-    endBtn.style.background = '#232b39';
-    endBtn.style.color = '#ff6f3c';
-    endBtn.style.fontSize = '0.68em';
-    endBtn.style.fontWeight = '700';
-    endBtn.style.padding = '0.18em 0.9em';
-    endBtn.style.border = '1.2px solid #ff6f3c';
-    endBtn.style.borderRadius = '999px';
-    endBtn.style.boxShadow = '0 1px 6px 0 rgba(255,111,60,0.10)';
-    endBtn.style.letterSpacing = '0.01em';
-    endBtn.style.display = isEnded ? 'none' : '';
-    endBtn.onclick = function () {
-      if (!auctionId) return;
-      if (
-        !confirm(
-          'Are you sure you want to end this auction? This cannot be undone.',
-        )
-      )
-        return;
-      if (socket && auctionId && !endBtn.disabled) {
-        socket.emit('auctionEnd', { auctionId: Number(auctionId) });
-      }
+    // Add button
+    const addBtn = document.createElement('button');
+    addBtn.id = 'addAuctionBtn';
+    addBtn.className = 'admin-btn admin-capsule';
+    addBtn.title = 'Add Auction';
+    addBtn.innerHTML =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:0.3em;"><path d="M12 5v14m7-7H5" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Add';
+    addBtn.onclick = function () {
+      showAddAuctionModal();
     };
-    adminBar.appendChild(endBtn);
+    adminBar.appendChild(addBtn);
 
-
+    // Delete button
     const delBtn = document.createElement('button');
     delBtn.id = 'deleteAuctionBtn';
     delBtn.className = 'admin-btn admin-capsule';
     delBtn.title = 'Delete Auction';
-    delBtn.textContent = 'Delete';
-    delBtn.style.background = '#232b39';
-    delBtn.style.color = '#ff6f3c';
-    delBtn.style.fontSize = '0.68em';
-    delBtn.style.fontWeight = '700';
-    delBtn.style.padding = '0.18em 0.9em';
-    delBtn.style.border = '1.2px solid #ff6f3c';
-    delBtn.style.borderRadius = '999px';
-    delBtn.style.boxShadow = '0 1px 6px 0 rgba(255,111,60,0.10)';
-    delBtn.style.letterSpacing = '0.01em';
+    delBtn.innerHTML =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:0.3em;"><path d="M6 19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V7H6V19ZM19 4H15.5L14.79 3.29C14.6134 3.1134 14.3528 3 14.08 3H9.92C9.64721 3 9.38662 3.1134 9.21 3.29L8.5 4H5C4.44772 4 4 4.44772 4 5V6C4 6.55228 4.44772 7 5 7H19C19.5523 7 20 6.55228 20 6V5C20 4.44772 19.5523 4 19 4Z" fill="#ff6f3c"/></svg>Delete';
     delBtn.onclick = function () {
       if (!auctionId) return;
       if (
@@ -728,7 +692,6 @@ function updateAdminButton() {
           return res.json();
         })
         .then(() => {
-
           return fetch('http://localhost:3000/auctions', {
             headers: { 'x-api-key': 'my-secret-api-key' },
           });
@@ -751,31 +714,31 @@ function updateAdminButton() {
     };
     adminBar.appendChild(delBtn);
 
-
-    const addBtn = document.createElement('button');
-    addBtn.id = 'addAuctionBtn';
-    addBtn.className = 'admin-btn admin-capsule';
-    addBtn.title = 'Add Auction';
-    addBtn.textContent = 'Add';
-    addBtn.style.background = '#232b39';
-    addBtn.style.color = '#4caf50';
-    addBtn.style.fontSize = '0.68em';
-    addBtn.style.fontWeight = '700';
-    addBtn.style.padding = '0.18em 0.9em';
-    addBtn.style.border = '1.2px solid #4caf50';
-    addBtn.style.borderRadius = '999px';
-    addBtn.style.boxShadow = '0 1px 6px 0 rgba(76,175,80,0.10)';
-    addBtn.style.letterSpacing = '0.01em';
-    addBtn.onclick = function () {
-      showAddAuctionModal();
+    // End button
+    const endBtn = document.createElement('button');
+    endBtn.id = 'endAuctionBtn';
+    endBtn.className = 'admin-btn admin-capsule';
+    endBtn.title = 'End Auction';
+    endBtn.innerHTML =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:0.3em;"><circle cx="12" cy="12" r="10" stroke="#ff6f3c" stroke-width="2" fill="none"/><rect x="8" y="8" width="8" height="8" rx="2" fill="#ff6f3c"/></svg>End';
+    endBtn.style.display = isEnded ? 'none' : '';
+    endBtn.onclick = function () {
+      if (!auctionId) return;
+      if (
+        !confirm(
+          'Are you sure you want to end this auction? This cannot be undone.',
+        )
+      )
+        return;
+      if (socket && auctionId && !endBtn.disabled) {
+        socket.emit('auctionEnd', { auctionId: Number(auctionId) });
+      }
     };
-    adminBar.appendChild(addBtn);
+    adminBar.appendChild(endBtn);
   }
 }
 
-
 function showAddAuctionModal() {
-
   if (document.getElementById('modalOverlay')) return;
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';

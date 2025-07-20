@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:700&display=swap');
+
+.header-absolute-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.1em;
+  font-weight: 800;
+  color: var(--text-main);
+  opacity: 0.98;
+  text-shadow:
+    0 4px 18px #232b39,
+    0 1px 0 #fff1;
+  letter-spacing: 0.06em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+}
+header {
+  position: relative;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent !important;
+  padding: 0.5em 1.2em 0.5em 1.2em;
+}
+header .header-left {
+  display: flex;
+  align-items: center;
+}
+header .header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+}
+header .logo-img {
+  height: 48px;
+  width: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px 0 rgba(34, 40, 49, 0.18);
+  background: transparent;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px #232b39) brightness(0.98) contrast(1.1);
+  transition:
+    box-shadow 0.2s,
+    filter 0.2s;
+}
+header .logo-title {
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 300;
+  font-size: 1.5em;
+  letter-spacing: 0.01em;
+  color: #d4af58;
+}
