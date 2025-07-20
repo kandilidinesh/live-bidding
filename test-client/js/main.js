@@ -570,9 +570,41 @@ function updateFooterContent() {
   }
 }
 
+
 document.body.classList.add('dark');
 document.body.style.background =
   'linear-gradient(135deg, #181c23 0%, #232b39 100%)';
+
+// Prompt for admin 2FA modal on reload if admin is selected
+window.addEventListener('DOMContentLoaded', function () {
+  const userSelect = document.getElementById('userSelect');
+  // Wait for userSelect to be populated
+  setTimeout(() => {
+    if (userSelect && userSelect.value === 'admin') {
+      showAdmin2FAModal(() => {
+        userId = 'admin';
+        localStorage.setItem('auctionUserId', userId);
+        updateAdminButton();
+        updateFooterContent();
+        renderBidHistory();
+      }, () => {
+        // If cancelled or failed, revert selection
+        const prev = localStorage.getItem('auctionUserId');
+        if (prev && prev !== 'admin') {
+          userSelect.value = prev;
+          userId = prev;
+        } else {
+          userSelect.selectedIndex = 1;
+          userId = userSelect.value;
+        }
+        localStorage.setItem('auctionUserId', userId);
+        updateAdminButton();
+        updateFooterContent();
+        renderBidHistory();
+      });
+    }
+  }, 200);
+});
 
 fetch('http://localhost:3000/auctions', {
   headers: { 'x-api-key': 'my-secret-api-key' },
@@ -642,12 +674,116 @@ fetch('http://localhost:3000/users', {
   });
 
 userSelect.onchange = (e) => {
-  userId = e.target.value;
+  const selected = e.target.value;
+  if (selected === 'admin') {
+    showAdmin2FAModal(() => {
+      userId = 'admin';
+      localStorage.setItem('auctionUserId', userId);
+      updateAdminButton();
+      updateFooterContent();
+      renderBidHistory();
+    }, () => {
+      // If cancelled or failed, revert selection
+      // Try to select previous user or first user
+      const prev = localStorage.getItem('auctionUserId');
+      if (prev && prev !== 'admin') {
+        userSelect.value = prev;
+        userId = prev;
+      } else {
+        userSelect.selectedIndex = 1;
+        userId = userSelect.value;
+      }
+      localStorage.setItem('auctionUserId', userId);
+      updateAdminButton();
+      updateFooterContent();
+      renderBidHistory();
+    });
+    return;
+  }
+  userId = selected;
   localStorage.setItem('auctionUserId', userId);
   updateAdminButton();
   updateFooterContent();
   renderBidHistory();
 };
+
+function showAdmin2FAModal(onSuccess, onCancel) {
+  if (document.getElementById('admin2faBlur')) return;
+  const blur = document.createElement('div');
+  blur.className = 'admin-modal-blur';
+  blur.id = 'admin2faBlur';
+  blur.innerHTML = `
+    <div class="admin-modal" style="max-width:320px;width:95vw;padding:1.2em 1.1em 1.1em 1.1em;position:relative;">
+      <button class="admin-modal-close" title="Close" style="position:absolute;top:0.5em;right:0.5em;font-size:1.2em;width:1.8em;height:1.8em;line-height:1.2em;padding:0;border:none;background:transparent;color:#bfc9d1;cursor:pointer;">&times;</button>
+      <h2 style="font-size:1.18em;margin-bottom:0.7em;">Admin Verification</h2>
+      <div class="admin-modal-error" id="admin2faError" style="margin-bottom:0.5em;"></div>
+      <div id="admin2faCells" style="display:flex;gap:0.35em;justify-content:center;margin-bottom:0.9em;">
+        <input class="admin2fa-cell" type="text" inputmode="numeric" maxlength="1" pattern="\\d" autocomplete="one-time-code" style="width:2.1em;height:2.1em;font-size:1.15em;" />
+        <input class="admin2fa-cell" type="text" inputmode="numeric" maxlength="1" pattern="\\d" autocomplete="one-time-code" style="width:2.1em;height:2.1em;font-size:1.15em;" />
+        <input class="admin2fa-cell" type="text" inputmode="numeric" maxlength="1" pattern="\\d" autocomplete="one-time-code" style="width:2.1em;height:2.1em;font-size:1.15em;" />
+        <input class="admin2fa-cell" type="text" inputmode="numeric" maxlength="1" pattern="\\d" autocomplete="one-time-code" style="width:2.1em;height:2.1em;font-size:1.15em;" />
+        <input class="admin2fa-cell" type="text" inputmode="numeric" maxlength="1" pattern="\\d" autocomplete="one-time-code" style="width:2.1em;height:2.1em;font-size:1.15em;" />
+        <input class="admin2fa-cell" type="text" inputmode="numeric" maxlength="1" pattern="\\d" autocomplete="one-time-code" style="width:2.1em;height:2.1em;font-size:1.15em;" />
+      </div>
+      <div style="color:#bfc9d1;font-size:0.95em;margin-bottom:0.8em;">Default code is <b>000000</b></div>
+      <button id="admin2faSubmit" style="width:100%;padding:0.5em 0;font-size:1em;">Verify</button>
+    </div>
+  `;
+  document.body.appendChild(blur);
+  const cells = Array.from(blur.querySelectorAll('.admin2fa-cell'));
+  const error = document.getElementById('admin2faError');
+  const closeBtn = blur.querySelector('.admin-modal-close');
+  const submitBtn = document.getElementById('admin2faSubmit');
+  function closeModal() {
+    blur.remove();
+    if (onCancel) onCancel();
+  }
+  closeBtn.onclick = closeModal;
+  blur.onclick = (e) => {
+    if (e.target === blur) closeModal();
+  };
+  function getCode() {
+    return cells.map((cell) => cell.value.trim()).join('');
+  }
+  function verify() {
+    const val = getCode();
+    if (!/^\d{6}$/.test(val)) {
+      error.textContent = 'Enter a valid 6-digit code.';
+      cells[0].focus();
+      return;
+    }
+    if (val !== '000000') {
+      error.textContent = 'Incorrect code.';
+      cells.forEach((cell) => (cell.value = ''));
+      cells[0].focus();
+      return;
+    }
+    blur.remove();
+    if (onSuccess) onSuccess();
+  }
+  submitBtn.onclick = verify;
+  cells.forEach((cell, idx) => {
+    cell.addEventListener('input', (e) => {
+      const v = e.target.value;
+      if (!/\d/.test(v)) {
+        e.target.value = '';
+        return;
+      }
+      if (v && idx < 5) {
+        cells[idx + 1].focus();
+      }
+    });
+    cell.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !cell.value && idx > 0) {
+        cells[idx - 1].focus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        verify();
+      }
+    });
+  });
+  setTimeout(() => cells[0].focus(), 100);
+}
 
 function updateAdminButton() {
   const adminBar = document.getElementById('adminBtnBar');

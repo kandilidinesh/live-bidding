@@ -1,0 +1,80 @@
+/* Admin 2FA Modal Styles */
+.admin-modal-blur {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(34, 40, 49, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-modal {
+  background: #232b39;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.25);
+  padding: 2.5em 2em 2em 2em;
+  min-width: 320px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.admin-modal h2 {
+  color: #f8fafc;
+  font-size: 1.25em;
+  font-weight: 700;
+  margin-bottom: 1.2em;
+  letter-spacing: 0.03em;
+}
+.admin-modal input[type="text"] {
+  font-size: 1.5em;
+  letter-spacing: 0.4em;
+  text-align: center;
+  border: 1.5px solid #393e46;
+  border-radius: 8px;
+  padding: 0.5em 0.7em;
+  background: #181c23;
+  color: #f8fafc;
+  outline: none;
+  margin-bottom: 1.2em;
+  width: 10em;
+  box-sizing: border-box;
+}
+.admin-modal .admin-modal-error {
+  color: #ff6b6b;
+  font-size: 1em;
+  margin-bottom: 0.7em;
+  min-height: 1.2em;
+}
+.admin-modal button {
+  background: #7289da;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7em 2.2em;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.admin-modal button:hover {
+  background: #4e5d94;
+}
+.admin-modal .admin-modal-close {
+  position: absolute;
+  top: 0.7em;
+  right: 1.1em;
+  background: none;
+  border: none;
+  color: #bfc9d1;
+  font-size: 1.5em;
+  cursor: pointer;
+  z-index: 1;
+}
+.admin-modal .admin-modal-close:hover {
+  color: #ff6b6b;
+}
