@@ -8,6 +8,7 @@ import { RabbitmqModule } from '../rabbitmq/rabbitmq.module';
 @Module({
   imports: [RabbitmqModule],
   controllers: [AuctionsController],
-  providers: [AuctionsService, AuctionGateway, PubsubService]
+  providers: [AuctionsService, AuctionGateway, PubsubService],
+  exports: [AuctionsService],
 })
 export class AuctionsModule {}

@@ -1,15 +1,12 @@
-import { Controller, Get, Param, Logger } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { AuctionsService } from '../auctions/auctions.service';
 
-@Controller('bids')
+@Controller('auctions/:auctionId/bids')
 export class BidsController {
-  private readonly logger = new Logger(BidsController.name);
   constructor(private readonly auctionsService: AuctionsService) {}
 
-  // Get all bids for a given auction
-  @Get('auction/:auctionId')
+  @Get()
   async getBidsForAuction(@Param('auctionId') auctionId: string) {
-    this.logger.log(`[GET /bids/auction/${auctionId}]`);
     return this.auctionsService.findBidsByAuctionId(Number(auctionId));
   }
 }

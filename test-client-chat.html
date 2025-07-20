@@ -690,6 +690,7 @@ let bidHistory = [];
 
 function renderBidHistory() {
   chat.innerHTML = '';
+  lastDateCapsule = null; // Reset date capsule for each render
   addMessage({ message: 'Connected', system: true, sticky: true });
   // Show starting bid capsule if available
   const selectedAuction = (auctions || []).find(a => a.id == auctionId);
@@ -798,25 +799,21 @@ function renderBidHistory() {
       // --- Move addMessage above all usages ---
       // --- Date capsule logic ---
       let lastMessageDate = null;
+      let lastDateCapsule = null;
       function formatDateCapsule(dateObj) {
-        // WhatsApp/Telegram style: Today, Yesterday, or date string
-        const today = new Date();
+        // Always show formatted date, e.g. 20 Jul 2025
         const msgDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-        const nowDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const diff = (msgDate - nowDate) / (1000 * 60 * 60 * 24);
-        if (diff === 0) return 'Today';
-        if (diff === -1) return 'Yesterday';
-        // Format as e.g. 20 Jul 2025
         return msgDate.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
       }
 
       function addDateCapsuleIfNeeded(dateObj) {
         const dateStr = dateObj.toISOString().slice(0, 10); // YYYY-MM-DD
-        if (lastMessageDate !== dateStr) {
-          lastMessageDate = dateStr;
+        const thisCapsule = formatDateCapsule(dateObj);
+        if (lastDateCapsule !== thisCapsule) {
+          lastDateCapsule = thisCapsule;
           const capsule = document.createElement('div');
           capsule.className = 'date-capsule';
-          capsule.textContent = formatDateCapsule(dateObj);
+          capsule.textContent = thisCapsule;
           chat.appendChild(capsule);
         }
       }

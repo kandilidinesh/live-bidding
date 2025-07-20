@@ -69,7 +69,7 @@ export class AuctionGateway
     let highestBid = await this.pubsubService.getHighestBid(data.auctionId);
     if (!highestBid) {
       const auction = await this.auctionsService.findAuctionById(
-        data.auctionId,
+        Number(data.auctionId),
       );
       if (auction) {
         highestBid = { currentHighestBid: auction.currentHighestBid };
