@@ -135,7 +135,7 @@ This project implements a scalable, real-time live car auction system. It is des
 
 ## Usage
 
-- Use the sidebar to select or add auctions.
+- Use the sidebar to select, add, delete and end auctions.
 - Admin can add auctions (with starting bid), end, or delete them.
 - Users can place bids in real time; all bids and the starting bid are shown in the chat.
 - Winner and auction status are displayed when the auction ends.

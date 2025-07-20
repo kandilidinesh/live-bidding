@@ -96,23 +96,14 @@ export class AuctionGateway
     @MessageBody() data: CreateBidDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const result = await this.auctionsService.placeBid(
-      data.auctionId,
-      data.userId,
-      data.amount,
-    );
-    if (result.success) {
-      await this.rabbitmqService.publishBid(result.bid);
-      await this.pubsubService.setHighestBid(data.auctionId, result.bid);
-      await this.pubsubService.publishBidUpdate(data.auctionId, result.bid);
-      await this.rabbitmqService.publishAudit({ type: 'bid', bid: result.bid });
-      await this.rabbitmqService.publishNotification({
-        type: 'bid',
-        bid: result.bid,
-      });
-    } else {
-      client.emit('bidError', result.message);
-    }
+    // Just publish the bid request to RabbitMQ; processing is done by the worker
+    await this.rabbitmqService.publishBid({
+      auctionId: data.auctionId,
+      userId: data.userId,
+      amount: data.amount,
+    });
+    // Optionally, you can optimistically notify the client, or wait for a pubsub update
+    client.emit('bidReceived', { status: 'queued' });
   }
   @SubscribeMessage('auctionEnd')
   async handleAuctionEnd(@MessageBody() data: { auctionId: number }) {

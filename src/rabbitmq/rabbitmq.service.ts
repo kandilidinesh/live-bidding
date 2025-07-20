@@ -5,9 +5,22 @@ import {
   Logger,
 } from '@nestjs/common';
 import * as amqp from 'amqplib';
+import { AuctionsService } from '../auctions/auctions.service';
+import { PubsubService } from '../redis/pubsub/pubsub.service';
 
 @Injectable()
 export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
+  // Inject these services for bid processing
+  private auctionsService: AuctionsService;
+  private pubsubService: PubsubService;
+
+  setDependencies(
+    auctionsService: AuctionsService,
+    pubsubService: PubsubService,
+  ) {
+    this.auctionsService = auctionsService;
+    this.pubsubService = pubsubService;
+  }
   private readonly logger = new Logger(RabbitmqService.name);
   private connection: amqp.Connection;
   private channel: amqp.Channel;
@@ -58,10 +71,10 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     await this.channel.bindQueue(this.queues.audit, this.exchanges.audit, '');
     await this.channel.bindQueue(this.queues.dlq, this.exchanges.dlx, '');
     // Start consumers
-    this.consumeBidQueue();
-    this.consumeNotificationQueue();
-    this.consumeAuditQueue();
-    this.consumeDLQ();
+    void this.consumeBidQueue();
+    void this.consumeNotificationQueue();
+    void this.consumeAuditQueue();
+    void this.consumeDLQ();
     this.logger.log('RabbitMQ connected and queues/exchanges set up');
   }
 
@@ -101,8 +114,24 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       if (!msg) return;
       try {
         const bid = JSON.parse(msg.content.toString());
-        // TODO: Process bid (call service, etc.)
-        this.logger.log(`Processed bid: ${JSON.stringify(bid)}`);
+        if (!this.auctionsService || !this.pubsubService) {
+          this.logger.error('Bid processing dependencies not set!');
+          this.channel.nack(msg, false, false);
+          return;
+        }
+        // Validate and process bid
+        const result = await this.auctionsService.placeBid(
+          bid.auctionId,
+          bid.userId,
+          bid.amount,
+        );
+        if (result.success) {
+          await this.pubsubService.setHighestBid(bid.auctionId, result.bid);
+          await this.pubsubService.publishBidUpdate(bid.auctionId, result.bid);
+          this.logger.log(`Processed bid: ${JSON.stringify(result.bid)}`);
+        } else {
+          this.logger.warn(`Bid rejected: ${result.message}`);
+        }
         this.channel.ack(msg);
       } catch (err) {
         this.logger.error(`Bid processing failed, sending to DLQ: ${err}`);
@@ -111,7 +140,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     });
   }
   private async consumeNotificationQueue() {
-    await this.channel.consume(this.queues.notification, async (msg) => {
+    await this.channel.consume(this.queues.notification, (msg) => {
       if (!msg) return;
       try {
         const notification = JSON.parse(msg.content.toString());
@@ -124,7 +153,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     });
   }
   private async consumeAuditQueue() {
-    await this.channel.consume(this.queues.audit, async (msg) => {
+    await this.channel.consume(this.queues.audit, (msg) => {
       if (!msg) return;
       try {
         const audit = JSON.parse(msg.content.toString());
@@ -137,7 +166,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     });
   }
   private async consumeDLQ() {
-    await this.channel.consume(this.queues.dlq, async (msg) => {
+    await this.channel.consume(this.queues.dlq, (msg) => {
       if (!msg) return;
       // TODO: Handle failed messages (alert, log, etc.)
       this.logger.warn(`DLQ message: ${msg.content.toString()}`);
