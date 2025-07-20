@@ -1,12 +1,12 @@
 const chat = document.getElementById('chat');
 const userSelect = document.getElementById('userSelect');
-// No darkToggle, always dark mode
+
 const auctionList = document.getElementById('auctionList');
 let socket = null,
   auctionId = null,
   userId = null,
   auctions = [];
-// Restore auctionId and userId from localStorage if present
+
 if (localStorage.getItem('auctionAuctionId')) {
   auctionId = localStorage.getItem('auctionAuctionId');
 }
@@ -21,7 +21,7 @@ function renderBidHistory() {
   chat.innerHTML = '';
   lastDateCapsule = null; // Reset date capsule for each render
   addMessage({ message: 'Connected', system: true, sticky: true });
-  // Show starting bid capsule if available
+
   const selectedAuction = (auctions || []).find((a) => a.id == auctionId);
   if (selectedAuction && typeof selectedAuction.startingBid === 'number') {
     const sb = document.createElement('div');
@@ -62,7 +62,7 @@ function renderBidHistory() {
       }
       let showName = '';
       if (resolvedUserId == userId) {
-        // Try to get first and last name from bid, then users array, then fallback to username
+
         let fn = bid.user?.firstName || bid.firstName;
         let ln = bid.user?.lastName || bid.lastName;
         if ((!fn || !ln) && users && Array.isArray(users)) {
@@ -128,12 +128,12 @@ function renderBidHistory() {
   }
 }
 
-// --- Move addMessage above all usages ---
-// --- Date capsule logic ---
+
+
 let lastMessageDate = null;
 let lastDateCapsule = null;
 function formatDateCapsule(dateObj) {
-  // Always show formatted date, e.g. 20 Jul 2025
+
   const msgDate = new Date(
     dateObj.getFullYear(),
     dateObj.getMonth(),
@@ -159,7 +159,7 @@ function addDateCapsuleIfNeeded(dateObj) {
 }
 
 function format12HourTime(dateObj) {
-  // e.g. 2:15 PM
+
   return dateObj.toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
@@ -167,8 +167,8 @@ function format12HourTime(dateObj) {
   });
 }
 
-// User color palette and color assignment
-// Mild, Discord-like color palette
+
+
 const USER_COLORS = [
   '#b9bbbe', // mild gray
   '#7289da', // discord blurple
@@ -189,12 +189,12 @@ const USER_COLORS = [
 ];
 function getUserColor(userId) {
   if (!userId) return '#bfc9d1';
-  // Use numeric userId if possible, else hash string
+
   let idNum = Number(userId);
   if (!isNaN(idNum)) {
     return USER_COLORS[idNum % USER_COLORS.length];
   } else {
-    // Hash string to int
+
     let hash = 0;
     for (let i = 0; i < String(userId).length; i++) {
       hash = (hash << 5) - hash + String(userId).charCodeAt(i);
@@ -218,12 +218,12 @@ function addMessage({
   userId,
 }) {
   if (system) {
-    // No-op: system messages are not shown in chat anymore
+
     return;
   }
-  // Ensure userId is set for color assignment
+
   if (!userId) {
-    // Try to find userId by username (case-insensitive, also check first/last name)
+
     if (typeof username === 'string' && users && Array.isArray(users)) {
       let u = users.find(
         (u) =>
@@ -240,12 +240,12 @@ function addMessage({
       if (u && u.id) userId = u.id;
     }
   }
-  // --- Date capsule logic ---
+
   let dateObj = null;
   if (timestamp) {
     dateObj = new Date(timestamp);
   } else if (meta) {
-    // Try to parse meta as time string, fallback to today
+
     dateObj = new Date();
   } else {
     dateObj = new Date();
@@ -254,17 +254,17 @@ function addMessage({
 
   const msg = document.createElement('div');
   msg.className = 'message' + (me ? ' me' : '');
-  // Capsule/card
+
   const card = document.createElement('div');
   card.className = 'msg-card';
-  // Header: first/last name (left), bid (right)
+
   const header = document.createElement('div');
   header.className = 'msg-header';
-  // Name (first + last)
+
   const nameSpan = document.createElement('span');
   nameSpan.className = 'msg-username';
   if (me) {
-    // For current user, show 'FirstName LastName (You)' or fallback
+
     let fn = firstName;
     let ln = lastName;
     if ((!fn || !ln) && users && Array.isArray(users)) {
@@ -286,27 +286,27 @@ function addMessage({
   } else {
     nameSpan.textContent = 'User';
   }
-  // Assign mild color and less bold font to user name (always set color and font-weight)
+
   let colorId = userId;
   if (!colorId && typeof username === 'string') colorId = username;
   nameSpan.style.color = getUserColor(colorId);
   nameSpan.style.fontWeight = me ? '600' : '500';
-  // Bid amount (right)
+
   const bidSpan = document.createElement('span');
   bidSpan.className = 'msg-bid';
   bidSpan.textContent = amount !== undefined ? `$ ${amount}` : '';
-  // Add to header (name left, amount right)
+
   header.appendChild(nameSpan);
   header.appendChild(bidSpan);
   card.appendChild(header);
-  // Message body (optional, for future extensibility)
+
   if (message) {
     const body = document.createElement('div');
     body.className = 'msg-body';
     body.innerHTML = message;
     card.appendChild(body);
   }
-  // Meta (timestamp)
+
   if (dateObj) {
     const metaSpan = document.createElement('span');
     metaSpan.className = 'msg-meta';
@@ -334,13 +334,13 @@ function updateAuctionTimer() {
   }
   if (timerInterval) clearInterval(timerInterval);
   const started = new Date(selectedAuction.startTime).getTime();
-  // If auction is ended and has endTime, show total duration
+
   if (selectedAuction.status === 'ENDED' && selectedAuction.endTime) {
     const ended = new Date(selectedAuction.endTime).getTime();
     const elapsed = Math.max(0, ended - started);
     timerEl.innerHTML = `<div class=\"connection-capsule timer-capsule\" style=\"color:#ffb347;border-color:#ffb347;background:#232b39;font-weight:600;font-size:0.93em;gap:0.08em;display:inline-flex;align-items:center;padding:0.12em 0.5em 0.12em 0.5em;min-height:unset;height:1.7em;line-height:1.2em;min-width:320px;max-width:320px;\">⏱ <span style='margin-right:0.13em;'>Auction</span><span style='margin-right:0.13em;'>duration:</span><span style='color:#fff;font-weight:700;margin-left:0.13em;display:inline-block;width:140px;text-align:center;overflow:hidden;text-overflow:ellipsis;'>${formatElapsed(elapsed)}</span></div>`;
   } else {
-    // Live auction: update every second
+
     function render() {
       const now = Date.now();
       const elapsed = Math.max(0, now - started);
@@ -359,10 +359,10 @@ function renderAuctionList() {
     .forEach((a) => {
       const item = document.createElement('div');
       item.className = 'auction-item' + (a.id == auctionId ? ' selected' : '');
-      // Show carId as the car label since carName is not present
+
       let carLabel =
         typeof a.carId === 'string' && a.carId.trim() ? a.carId : 'Car';
-      // Status dot only, no text
+
       let statusColor =
         a.status === 'LIVE'
           ? '#4caf50'
@@ -371,7 +371,7 @@ function renderAuctionList() {
             : '#7a869a';
       let statusDot = `<span class="auction-status-dot" style="display:inline-block;width:0.7em;height:0.7em;border-radius:50%;background:${statusColor};margin-right:0.4em;vertical-align:middle;"></span>`;
       item.innerHTML = `${statusDot}<span class="id">#${a.id}</span> <span class="car">${carLabel}</span>`;
-      // Remove all visual cues except the status dot
+
       item.style.boxShadow = 'none';
       item.style.opacity = '1';
       item.onclick = () => {
@@ -395,7 +395,7 @@ function initSocket() {
   chat.innerHTML = '';
   window.__isConnected = false;
   updateFooterContent();
-  // We'll keep a local bid history for this auction
+
   bidHistory = [];
   socket = io('http://localhost:3000/auctions', {
     transports: ['websocket'],
@@ -409,7 +409,7 @@ function initSocket() {
     updateFooterContent();
   });
   socket.on('bidUpdate', (data) => {
-    // Prevent duplicate bids: check by id if present, else fallback to timestamp+userId+amount
+
     let isDuplicate = false;
     if (data.id !== undefined) {
       isDuplicate = bidHistory.some((b) => b.id === data.id);
@@ -421,7 +421,7 @@ function initSocket() {
           b.amount === data.amount,
       );
     }
-    // Only add if not duplicate and valid
+
     const isValid =
       data &&
       typeof data.amount === 'number' &&
@@ -451,7 +451,7 @@ function initSocket() {
   });
   socket.on('auctionEnded', (data) => {
     addMessage({ message: `Auction Ended.`, system: true });
-    // Update auction status and winnerId in local data and UI
+
     const idx = (auctions || []).findIndex((a) => a.id == auctionId);
     if (idx !== -1) {
       auctions[idx].status = 'ENDED';
@@ -473,7 +473,7 @@ function initSocket() {
     });
   });
   socket.emit('joinAuction', { auctionId });
-  // Load bid history and sort by timestamp ascending
+
   fetch(`http://localhost:3000/auctions/${auctionId}/bids`, {
     headers: { 'x-api-key': 'my-secret-api-key' },
   })
@@ -489,7 +489,7 @@ function initSocket() {
 
 function submitBid() {
   const amount = parseFloat(bidAmount.value);
-  // Only allow if userId is a valid number and not admin
+
   if (
     !amount ||
     !auctionId ||
@@ -510,7 +510,7 @@ function submitBid() {
   bidAmount.value = '';
 }
 
-// Helper to update footer content based on auction status
+
 function updateFooterContent() {
   const footerContent = document.getElementById('footerContent');
   const selectedAuction = (auctions || []).find((a) => a.id == auctionId);
@@ -518,9 +518,9 @@ function updateFooterContent() {
   let capsule = `<div id="connectionCapsule" class="connection-capsule${connectionStatus === 'online' ? '' : ' offline'}">
           <span class="connection-dot"></span>${connectionStatus === 'online' ? 'Connected' : 'Offline'}
         </div>`;
-  // Disable bid input for ended auctions or if admin is selected
+
   if (selectedAuction && selectedAuction.status === 'ENDED') {
-    // Find winner info
+
     let winner = null;
     if (selectedAuction.winnerId && users && Array.isArray(users)) {
       winner = users.find((u) => u.id == selectedAuction.winnerId);
@@ -531,7 +531,7 @@ function updateFooterContent() {
     if (!winnerName && winner && winner.username) winnerName = winner.username;
     if (!winnerName && selectedAuction.winnerId)
       winnerName = 'User #' + selectedAuction.winnerId;
-    // Fireworks canvas and winner display (restore 'Auction has ended' capsule)
+
     footerContent.innerHTML = `
             <div id="fireworks-bg" style="position:absolute;left:0;top:0;width:100vw;height:100%;z-index:0;pointer-events:none;"></div>
             <div style="position:relative;z-index:2;display:flex;align-items:center;width:100%;">
@@ -544,9 +544,9 @@ function updateFooterContent() {
               </div>
             </div>
           `;
-    // Add fireworks animation
+
     showFireworks();
-    // Fireworks animation for winner
+
     function showFireworks() {
       let fw = document.getElementById('fireworks-bg');
       if (!fw) return;
@@ -554,10 +554,10 @@ function updateFooterContent() {
         '<canvas id="fireworks-canvas" style="width:100vw;height:100%;display:block;"></canvas>';
       const canvas = document.getElementById('fireworks-canvas');
       if (!canvas) return;
-      // Set canvas size
+
       canvas.width = window.innerWidth;
       canvas.height = fw.offsetHeight || 120;
-      // Simple fireworks animation
+
       const ctx = canvas.getContext('2d');
       let particles = [];
       function randomColor() {
@@ -600,7 +600,7 @@ function updateFooterContent() {
           ctx.fill();
         }
         ctx.globalAlpha = 1;
-        // Update
+
         particles.forEach((p) => {
           p.x += p.vx;
           p.y += p.vy;
@@ -619,7 +619,7 @@ function updateFooterContent() {
       animate();
     }
   } else if (userId === 'admin' || isNaN(Number(userId))) {
-    // Show a gray capsule for 'Admin cannot place bids'
+
     footerContent.innerHTML = `
             ${capsule}
             <div class="connection-capsule offline" style="color:#bfc9d1;border-color:#bfc9d1;margin-left:0.7em;">
@@ -627,7 +627,7 @@ function updateFooterContent() {
             </div>
           `;
   } else {
-    // Capsule style for bid input
+
     footerContent.innerHTML =
       capsule +
       `
@@ -638,7 +638,7 @@ function updateFooterContent() {
               </button>
             </div>
           `;
-    // Re-bind bid button and input events after they exist
+
     const bidBtn = document.getElementById('bidBtn');
     const bidAmount = document.getElementById('bidAmount');
     if (bidBtn && bidAmount) {
@@ -653,12 +653,12 @@ function updateFooterContent() {
   }
 }
 
-// Always dark mode, no toggle
+
 document.body.classList.add('dark');
 document.body.style.background =
   'linear-gradient(135deg, #181c23 0%, #232b39 100%)';
 
-// Load auctions & users with authorization header
+
 fetch('http://localhost:3000/auctions', {
   headers: { 'x-api-key': 'my-secret-api-key' },
 })
@@ -667,11 +667,11 @@ fetch('http://localhost:3000/auctions', {
     if (!Array.isArray(data) || data.length === 0)
       throw new Error('No auctions found');
     auctions = data;
-    // If auctionId is not set or not found, default to first auction
+
     if (!auctionId || !auctions.some((a) => a.id == auctionId)) {
       auctionId = auctions[0]?.id;
     }
-    // Ensure auctionId is a string for comparison
+
     auctionId = String(auctionId);
     localStorage.setItem('auctionAuctionId', auctionId);
     renderAuctionList();
@@ -692,7 +692,7 @@ fetch('http://localhost:3000/users', {
     if (!Array.isArray(data)) throw new Error('Users response is not an array');
     users = data;
     userSelect.innerHTML = '';
-    // Always add admin user first
+
     const adminOpt = document.createElement('option');
     adminOpt.value = 'admin';
     adminOpt.textContent = 'Admin';
@@ -709,7 +709,7 @@ fetch('http://localhost:3000/users', {
       opt.textContent = name;
       userSelect.appendChild(opt);
     });
-    // Restore userId if present and valid, else default to first option
+
     if (
       userId &&
       Array.from(userSelect.options).some((opt) => opt.value == userId)
@@ -733,7 +733,7 @@ userSelect.onchange = (e) => {
   updateFooterContent(); // Update bid input visibility when user changes
   renderBidHistory(); // Re-render chat so 'You' is updated
 };
-// Add End Auction button for admin
+
 function updateAdminButton() {
   const adminBar = document.getElementById('adminBtnBar');
   if (!adminBar) return;
@@ -741,7 +741,7 @@ function updateAdminButton() {
   const selectedAuction = (auctions || []).find((a) => a.id == auctionId);
   const isEnded = selectedAuction && selectedAuction.status === 'ENDED';
   if (userSelect.value === 'admin') {
-    // End Auction capsule
+
     const endBtn = document.createElement('button');
     endBtn.id = 'endAuctionBtn';
     endBtn.className = 'admin-btn admin-capsule';
@@ -771,7 +771,7 @@ function updateAdminButton() {
     };
     adminBar.appendChild(endBtn);
 
-    // Delete Auction capsule
+
     const delBtn = document.createElement('button');
     delBtn.id = 'deleteAuctionBtn';
     delBtn.className = 'admin-btn admin-capsule';
@@ -803,7 +803,7 @@ function updateAdminButton() {
           return res.json();
         })
         .then(() => {
-          // Refresh auctions list
+
           return fetch('http://localhost:3000/auctions', {
             headers: { 'x-api-key': 'my-secret-api-key' },
           });
@@ -826,7 +826,7 @@ function updateAdminButton() {
     };
     adminBar.appendChild(delBtn);
 
-    // Add Auction capsule
+
     const addBtn = document.createElement('button');
     addBtn.id = 'addAuctionBtn';
     addBtn.className = 'admin-btn admin-capsule';
@@ -848,9 +848,9 @@ function updateAdminButton() {
   }
 }
 
-// Modal logic for Add Auction (move outside updateAdminButton)
+
 function showAddAuctionModal() {
-  // Prevent multiple modals
+
   if (document.getElementById('modalOverlay')) return;
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -871,19 +871,19 @@ function showAddAuctionModal() {
           </div>
         `;
   document.body.appendChild(overlay);
-  // Close modal on X or overlay click
+
   overlay.querySelector('.modal-close').onclick = closeModal;
   overlay.onclick = (e) => {
     if (e.target === overlay) closeModal();
   };
-  // Form submit
+
   const form = overlay.querySelector('#addAuctionForm');
   form.onsubmit = function (e) {
     e.preventDefault();
     const carId = form.carId.value.trim();
     const startingBid = parseInt(form.startingBid.value, 10);
     if (!carId || isNaN(startingBid)) return;
-    // Call backend API to add auction (carId, startingBid)
+
     fetch('http://localhost:3000/auctions', {
       method: 'POST',
       headers: {
@@ -895,7 +895,7 @@ function showAddAuctionModal() {
       .then((res) => res.json())
       .then((data) => {
         closeModal();
-        // Refresh auctions list
+
         return fetch('http://localhost:3000/auctions', {
           headers: { 'x-api-key': 'my-secret-api-key' },
         });
