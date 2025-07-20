@@ -1,3 +1,6 @@
+
+
+
 # Live Car Bidding System
 
 ## Objective
@@ -124,11 +127,22 @@ This project implements a scalable, real-time live car auction system. It is des
 - **Real-time:** Socket.IO, Redis Pub/Sub
 - **Frontend:** HTML/JS (no framework)
 
-## Security & Scalability
+
+## Scalability
 
 - **Concurrency:** All bid operations are transactional and concurrency-safe.
 - **DDoS Protection:** WebSocket and bid rate limiting, connection throttling, and request filtering.
 - **Distributed:** Redis and RabbitMQ enable horizontal scaling and multi-instance deployments.
+
+## Security & Authentication
+
+
+Authentication and authorization are **not implemented** in this demo, as they were not part of the requirements. All users, including admin, are selected from a dropdown for demonstration purposes only.
+
+However, the backend is structured to make adding real authentication straightforward:
+- All REST endpoints are protected by an `ApiKeyGuard` (API key in header), which can be replaced or extended with JWT, OAuth, or session-based authentication.
+- The user model includes a `role` field for future role-based access control.
+- The codebase uses NestJS guards, making it easy to integrate more advanced authentication and authorization logic.
 
 ## Implementation Details
 
